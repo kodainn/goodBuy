@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Ramsey\Uuid\Uuid;
 
-class User extends Authenticatable
+class TblUser extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -17,10 +18,19 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+
+    protected $table = 'tbl_user';
+    protected $primaryKey = 'user_uuid';
+    protected $keyType = 'string';
+
     protected $fillable = [
-        'name',
+        'user_id',
         'email',
         'password',
+        'nick_name',
+        'pr',
+        'gender_div',
+        'icon_path'
     ];
 
     /**
@@ -41,4 +51,13 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public $incrementing = false;
+
+    protected static function booted()
+    {
+        static::creating(function (TblUser $model) {
+            empty($model->user_uuid) && $model->user_uuid = Uuid::uuid4();
+        });
+    }
 }

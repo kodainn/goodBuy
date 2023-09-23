@@ -13,14 +13,14 @@ defineProps({
 });
 
 const form = useForm({
-    email: '',
+    user_id: '',
     password: '',
     remember: false,
 });
 
 const submit = () => {
     form.post(route('login'), {
-        onFinish: () => form.reset('password'),
+        //onFinish: () => form.reset('password'),
     });
 };
 </script>
@@ -35,19 +35,19 @@ const submit = () => {
 
         <form @submit.prevent="submit">
             <div>
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="user_id" value="ユーザーID" />
 
                 <TextInput
-                    id="email"
-                    type="email"
+                    id="user_id"
+                    type="text"
                     class="mt-1 block w-full"
-                    v-model="form.email"
+                    v-model="form.user_id"
                     required
                     autofocus
-                    autocomplete="username"
+                    autocomplete="user_id"
                 />
 
-                <InputError class="mt-2" :message="form.errors.email" />
+                <InputError class="mt-2" :message="form.errors.user_id" />
             </div>
 
             <div class="mt-4">
