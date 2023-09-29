@@ -1,90 +1,72 @@
 <script setup>
-import Checkbox from '@/Components/Checkbox.vue';
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import TextField from "@/Components/TextField.vue";
+import ApplicationLogo from "@/Components/ApplicationLogo.vue";
+import Button from "@/Components/Button.vue";
+import { useForm } from "@inertiajs/vue3";
 
 defineProps({
-    canResetPassword: Boolean,
-    status: String,
+    errors: Object
 });
 
 const form = useForm({
-    user_id: '',
-    password: '',
-    remember: false,
+    user_id: "",
+    password: "",
 });
 
 const submit = () => {
-    form.post(route('login'), {
-        //onFinish: () => form.reset('password'),
+    form.post(route("login"), {
+        onFinish: () => form.reset("password"),
     });
 };
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Log in" />
-
-        <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
-            {{ status }}
-        </div>
-
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="user_id" value="ユーザーID" />
-
-                <TextInput
-                    id="user_id"
-                    type="text"
-                    class="mt-1 block w-full"
-                    v-model="form.user_id"
-                    required
-                    autofocus
-                    autocomplete="user_id"
-                />
-
-                <InputError class="mt-2" :message="form.errors.user_id" />
-            </div>
-
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
-
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="current-password"
-                />
-
-                <InputError class="mt-2" :message="form.errors.password" />
-            </div>
-
-            <div class="block mt-4">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ml-2 text-sm text-gray-600">Remember me</span>
-                </label>
-            </div>
-
-            <div class="flex items-center justify-end mt-4">
-                <Link
-                    v-if="canResetPassword"
-                    :href="route('password.request')"
-                    class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                    Forgot your password?
-                </Link>
-
-                <PrimaryButton class="ml-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    Log in
-                </PrimaryButton>
-            </div>
-        </form>
-    </GuestLayout>
+    <v-app>
+        <v-container>
+            <v-row style="margin: 5%;">
+                <v-col offset="2" cols="4">
+                    <ApplicationLogo></ApplicationLogo>
+                </v-col>
+            </v-row>
+            <v-row>
+                <v-col align="center" style="margin-bottom: 1%;">
+                    <h1>GOODSSHARESにログイン</h1>
+                </v-col>
+            </v-row>
+            <form @submit.prevent="submit">
+                <v-row>
+                    <v-col offset="4" cols="4" style="height: 100px;">
+                        <TextField
+                            label="ユーザーID"
+                            v-model="form.user_id"
+                            autocomplete
+                        />
+                        <div v-if="errors.user_id" style="color: red;">{{ errors.user_id }}</div>
+                    </v-col>
+                </v-row>
+                <v-row>
+                    <v-col offset="4" cols="4" style="height: 100px;">
+                        <TextField
+                            type="password"
+                            label="パスワード"
+                            v-model="form.password"
+                            autocomplete
+                        />
+                        <div v-if="errors.password" style="color: red;">{{ errors.password }}</div>
+                    </v-col>
+                </v-row>
+                <v-row>
+                    <v-col offset="4" cols="4">
+                        <Button
+                            type="submit"
+                            name="goodsharesにログインする"
+                            width="1000"
+                            backgroundColor="#993300"
+                            color="#FFF"
+                        ></Button>
+                    </v-col>
+                </v-row>
+            </form>
+        </v-container>
+    </v-app>
 </template>

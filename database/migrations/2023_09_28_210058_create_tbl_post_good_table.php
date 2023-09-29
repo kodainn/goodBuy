@@ -13,13 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('tbl_post', function (Blueprint $table) {
-            $table->uuid('post_uuid')->primary();
+        Schema::create('tbl_post_good', function (Blueprint $table) {
+            $table->uuid('post_good_uuid')->primary();
+            $table->uuid('post_uuid');
             $table->uuid('user_uuid');
-            $table->string('title', 50);
-            $table->string('review', 200)->nullable();
-            $table->integer('genre_div');
-            $table->timestamps();
+            $table->timestamps('created_at');
         });
     }
 
@@ -30,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tbl_post');
+        Schema::dropIfExists('tbl_post_good');
     }
 };

@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\TblTypeDiv;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
-class ProfileController extends Controller
+class PostListController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -20,8 +21,10 @@ class ProfileController extends Controller
         if(!empty(Auth::user())) {
             $loginStatus = true;
         }
-        return Inertia::render('Profile/Index', [
-            'loginStatus' => $loginStatus
+        $typeDiv = TblTypeDiv::where('type_name', '=', 'genre')->get();
+        return Inertia::render('PostList/Index', [
+            'loginStatus' => $loginStatus,
+            'typeDiv' => $typeDiv
         ]);
     }
 
