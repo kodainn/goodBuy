@@ -3,8 +3,8 @@ import { Link } from "@inertiajs/vue3";
 import Button from "./Button.vue";
 import NavLink from "@/Components/NavLink.vue";
 
-defineProps({
-    loginStatus: Boolean,
+const props = defineProps({
+    loginUser: Object,
 });
 </script>
 
@@ -30,7 +30,7 @@ defineProps({
                 プロフィール
             </NavLink>
             <v-spacer></v-spacer>
-            <template v-if="loginStatus">
+            <template v-if="props.loginUser">
                 <Link as="button" :href="route('logout')" method="post">
                     <Button
                         name="ログアウト"

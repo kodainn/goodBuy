@@ -60,4 +60,19 @@ class TblUser extends Authenticatable
             empty($model->user_uuid) && $model->user_uuid = Uuid::uuid4();
         });
     }
+
+    public function follows()
+    {
+        return $this->hasMany(TblFollow::class, 'user_uuid');
+    }
+
+    public function followers()
+    {
+        return $this->hasMany(TblFollower::class, 'user_uuid');
+    }
+
+    public function posts()
+    {
+        return $this->hasMany(TblPost::class, 'user_uuid');
+    }
 }

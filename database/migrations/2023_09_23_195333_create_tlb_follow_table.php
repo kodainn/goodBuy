@@ -13,11 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('tlb_follow', function (Blueprint $table) {
+        Schema::create('tbl_follow', function (Blueprint $table) {
             $table->uuid('follow_uuid')->primary();
             $table->uuid('user_uuid');
             $table->uuid('follow_user_uuid');
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent()->nullable();
         });
     }
 
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tlb_follow');
+        Schema::dropIfExists('tbl_follow');
     }
 };

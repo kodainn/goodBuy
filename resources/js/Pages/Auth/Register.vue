@@ -2,6 +2,7 @@
 import TextField from "@/Components/TextField.vue";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import Button from "@/Components/Button.vue";
+import ErrorMessage from "@/Components/ErrorMessage.vue";
 import { useForm } from "@inertiajs/vue3";
 
 defineProps({
@@ -15,7 +16,6 @@ const form = useForm({
 });
 
 const submit = () => {
-    console.log(form)
     form.post(route("register"), {
         onFinish: () => form.reset("password"),
     });
@@ -46,7 +46,7 @@ const submit = () => {
                             v-model="form.user_id"
                             autocomplete
                         />
-                        <div v-if="errors.user_id" style="color: red;">{{ errors.user_id }}</div>
+                        <ErrorMessage :errorMessage="errors.user_id"></ErrorMessage>
                     </v-col>
                 </v-row>
                 <v-row>
@@ -59,7 +59,7 @@ const submit = () => {
                             v-model="form.email"
                             autocomplete
                         />
-                        <div v-if="errors.email" style="color: red;">{{ errors.email }}</div>
+                        <ErrorMessage :errorMessage="errors.email"></ErrorMessage>
                     </v-col>
                 </v-row>
                 <v-row>
@@ -73,7 +73,7 @@ const submit = () => {
                             v-model="form.password"
                             autocomplete
                         />
-                        <div v-if="errors.password" style="color: red;">{{ errors.password }}</div>
+                        <ErrorMessage :errorMessage="errors.password"></ErrorMessage>
                     </v-col>
                 </v-row>
                 <v-row>

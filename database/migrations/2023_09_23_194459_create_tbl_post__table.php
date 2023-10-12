@@ -19,7 +19,8 @@ return new class extends Migration
             $table->string('title', 50);
             $table->string('review', 200)->nullable();
             $table->integer('genre_div');
-            $table->timestamps();
+            $table->timestamp('updated_at')->useCurrent()->nullable();
+            $table->timestamp('created_at')->useCurrent()->nullable();
         });
     }
 

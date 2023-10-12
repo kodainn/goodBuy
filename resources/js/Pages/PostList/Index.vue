@@ -1,66 +1,96 @@
 <script setup>
 import CommonHeader from "@/Components/CommonHeader.vue";
-import PullDown from "@/Components/PullDown.vue";
 import { reactive } from "vue";
 import SvgIcon from "@jamescoyle/vue-icon";
-import { mdiHeart } from '@mdi/js';
-import { mdiHeartOutline } from "@mdi/js";
+import { mdiHeart } from "@mdi/js";
+import { mdiPlus } from "@mdi/js";
+import { ref, watch } from "vue";
+import { Link, router } from "@inertiajs/vue3";
 import Button from "@/Components/Button.vue";
-import { ref } from "vue";
-import { computed } from "vue";
+import TextField from "@/Components/TextField.vue";
+import PullDown from "@/Components/PullDown.vue";
+import ErrorMessage from "@/Components/ErrorMessage.vue";
+import TextArea from "@/Components/TextArea.vue";
+import axios from "axios";
 
-defineProps({
-    loginStatus: Boolean,
-    typeDiv: Array,
+const props = defineProps({
+    loginUser: Object,
+    typeDivKv: Object,
+    posts: Array,
+    errors: Object
 });
 
-const heart = mdiHeart;
-const heartOutline = mdiHeartOutline;
+const setFrontPost = ref(props.posts);
+
+const dialog = ref(false);
 
 const form = reactive({
-    searchGenre: null,
+    imageList: [],
+    title: null,
+    review: null,
+    genreDiv: null
 });
 
-const goodStack = ref([]);
-
-const addGoodStack = (i) => {
-    if(goodStack.value.indexOf(i) < 0) {
-        goodStack.value.push(i)
-    }
+const sendForm = () => {
+    router.post('/postlist', form, {
+        onSuccess: async() => {
+            imageReviewList.value = [];
+            form.imageList = [];
+            form.title = null;
+            form.review = null;
+            form.genreDiv = null;
+            dialog.value = false;
+            await axios.get('/postlist/getpost')
+            .then(res => {
+                setFrontPost.value = res.data;
+            });
+        }
+    });
 }
 
-const subGoodStack = (i) => {
-    const indexToRemove = goodStack.value.indexOf(i);
-    if(indexToRemove !== -1) {
-        goodStack.value.splice(indexToRemove, 1);
+const heart = mdiHeart;
+const plus = mdiPlus;
+
+const searchGenre = ref("");
+const getSearchGenreList = async() => {
+    await axios.get('/postlist/search/' + searchGenre.value)
+    .then(res => {
+        setFrontPost.value = res.data;
+    });
+};
+watch(searchGenre, getSearchGenreList);
+
+const imageReviewList = ref([]);
+const pushImagePathList = ($event) => {
+    if ($event.target.files.length > 0) {
+        const file = $event.target.files[0];
+        form.imageList.push([file]);
+        imageReviewList.value.push([URL.createObjectURL(file)]);
     }
 }
-
-const displayGoodStack = computed(() => goodStack.value);
 </script>
 
 <template>
     <v-app>
         <v-container>
-            <CommonHeader :loginStatus="loginStatus"></CommonHeader>
+            <CommonHeader :loginUser="props.loginUser"></CommonHeader>
             <v-main>
                 <v-container>
+                    <!-- 検索ボックスエリア -->
                     <v-row>
                         <v-col offset="0" cols="4">
                             <PullDown
-                                :typeDiv="typeDiv"
+                                :typeDivKv="props.typeDivKv"
                                 name="ジャンル"
-                                v-model="form.searchGenre"
+                                v-model="searchGenre"
                             >
                             </PullDown>
                         </v-col>
                     </v-row>
+                    <!-- 一覧表示エリア -->
                     <v-row>
-                        <v-col offset="0" cols="3" v-for="i in 10">
-                            <v-card
-                                class="mx-auto my-12"
-                                max-width="374"
-                            >
+                        <v-col offset="0" cols="4" v-for="post of setFrontPost">
+                            <v-card class="mx-auto my-12" max-width="374">
                                 <template v-slot:loader="{ isActive }">
                                     <v-progress-linear
                                         :active="isActive"
@@ -69,37 +99,44 @@ const displayGoodStack = computed(() => goodStack.value);
                                         indeterminate
                                     ></v-progress-linear>
                                 </template>
-
                                 <v-img
                                     cover
                                     height="250"
-                                    src="https://cdn.vuetifyjs.com/images/cards/cooking.png"
+                                    :src="post['images'][0]['post_image_path']"
                                 ></v-img>
                                 <v-card-text>
+                                    <div class="text-h5 text-primary">
+                                        {{ props.typeDivKv[post['genre_div']] }}
+                                    </div>
                                     <div class="text-h6">
-                                        Small plates, salads & sandwiches - an
-                                        intimate setting with 12 indoor seats
-                                        plus patio seating.
+                                        {{ post['title'] }}
                                     </div>
                                 </v-card-text>
                                 <v-card-actions>
                                     <v-row>
                                         <v-col>
-                                            <Button
-                                                variant="text"
-                                                name="詳細を見る"
-                                                color="blue"
+                                            <Link
+                                                :href="
+                                                    route('postlist.show', { post_uuid: post['post_uuid'] })
+                                                "
                                             >
-                                            </Button>
+                                                <Button
+                                                    variant="text"
+                                                    name="詳細を見る"
+                                                    color="blue"
+                                                >
+                                                </Button>
+                                            </Link>
                                         </v-col>
                                         <v-col offset="3">
-                                            <template v-if="loginStatus">
-                                                <template v-if="displayGoodStack.indexOf(i) === -1">
-                                                    <svg-icon type="mdi" :path="heartOutline" @click="addGoodStack(i)"></svg-icon>255
-                                                </template>
-                                                <template v-else>
-                                                    <svg-icon type="mdi" :path="heart" style="color: red;" @click="subGoodStack(i)"></svg-icon>256
-                                                </template>
+                                            <template v-if="props.loginUser">
+                                                <svg-icon
+                                                    type="mdi"
+                                                    :path="heart"
+                                                    style="color: red"
+                                                    @click="subGoodStack(post['post_uuid'])"
+                                                ></svg-icon
+                                                >{{ post['goods_count'] }}
                                             </template>
                                         </v-col>
                                     </v-row>
@@ -107,8 +144,141 @@ const displayGoodStack = computed(() => goodStack.value);
                             </v-card>
                         </v-col>
                     </v-row>
+                    <!-- 投稿作成エリア -->
+                    <template v-if="props.loginUser">
+                        <v-row justify="center">
+                            <v-dialog
+                                v-model="dialog"
+                                transition="dialog-bottom-transition"
+                                width="70%"
+                            >
+                                <template v-slot:activator="{ props }">
+                                    <v-btn
+                                        class="ma-2 fixed-button"
+                                        icon="mdi-cloud-upload"
+                                        color="#993300"
+                                        v-bind:="props"
+                                    >
+                                        <svg-icon type="mdi" :path="plus">
+                                        </svg-icon>
+                                    </v-btn>
+                                </template>
+                                <v-card>
+                                    <v-card-title>
+                                        <span class="text-h5">新規投稿</span>
+                                    </v-card-title>
+                                    <form @submit.prevent="sendForm" enctype="multipart/form-data">
+                                        <v-card-text>
+                                            <v-container>
+                                                <v-row>
+                                                    <template v-for="index in imageReviewList.length">
+                                                        <v-col v-if="(index - 1) === 0 || (index - 1) % 4 === 0" offset="2" cols="2">
+                                                            <v-img
+                                                                height="150"
+                                                                width="150"
+                                                                :src="imageReviewList[index - 1][0]"
+                                                            ></v-img>
+                                                        </v-col>
+                                                        <v-col v-else cols="2">
+                                                            <v-img
+                                                                height="150"
+                                                                width="150"
+                                                                :src="imageReviewList[index - 1][0]"
+                                                            ></v-img>
+                                                        </v-col>
+                                                    </template>
+                                                </v-row>
+                                                <v-row>
+                                                    <v-col offset="3" cols="3">
+                                                        <label for="file-input" class="custom-label-button">写真を選ぶ</label>
+                                                        <input
+                                                            hidden
+                                                            id="file-input"
+                                                            type="file"
+                                                            accept="image/*"
+                                                            @change="pushImagePathList($event)"
+                                                            ref="image"
+                                                        >
+                                                        <ErrorMessage :errorMessage="props.errors.imageList"></ErrorMessage>
+                                                    </v-col>
+                                                </v-row>
+                                                <v-row>
+                                                    <v-col offset="3" cols="4">
+                                                        <TextField
+                                                            label="タイトル"
+                                                            v-model="form.title"
+                                                            autocomplete
+                                                        >
+                                                        </TextField>
+                                                        <ErrorMessage :errorMessage="props.errors.title"></ErrorMessage>
+                                                    </v-col>
+                                                </v-row>
+                                                <v-row>
+                                                    <v-col offset="3" cols="6">
+                                                        <TextArea
+                                                            label="レビュー"
+                                                            v-model="form.review"
+                                                            autocomplete
+                                                        >
+                                                        </TextArea>
+                                                    </v-col>
+                                                </v-row>
+                                                <v-row>
+                                                    <v-col offset="3" cols="4">
+                                                        <PullDown
+                                                            :typeDivKv="props.typeDivKv"
+                                                            name="ジャンル"
+                                                            v-model="form.genreDiv"
+                                                        >
+                                                        </PullDown>
+                                                        <ErrorMessage :errorMessage="props.errors.genreDiv"></ErrorMessage>
+                                                    </v-col>
+                                                </v-row>
+                                                <v-row>
+                                                <v-col offset="3">
+                                                    <Button
+                                                        name="投稿する"
+                                                        color="blue"
+                                                        type="submit"
+                                                    >
+                                                    </Button>
+                                                </v-col>
+                                            </v-row>
+                                            </v-container>
+                                        </v-card-text>
+                                    </form>
+                                </v-card>
+                            </v-dialog>
+                        </v-row>
+                    </template>
                 </v-container>
             </v-main>
         </v-container>
     </v-app>
 </template>
+
+<style scoped>
+.fixed-button {
+    position: fixed;
+    bottom: 70px;
+    right: 70px;
+    width: 65px; /* 幅を変更 */
+    height: 65px; /* 高さを変更 */
+    /* 画面内に続けるための位置調整 */
+    z-index: 1000; /* 他の要素の上に表示 */
+}
+
+.custom-label-button {
+    cursor: pointer; /* マウスオーバー時にカーソルをポインターに変更 */
+    padding: 10px 20px; /* ボタンのパディング */
+    background-color: #007bff; /* ボタンの背景色 */
+    color: #fff; /* ボタンのテキスト色 */
+    border: none; /* ボタンのボーダーを削除 */
+    border-radius: 5px; /* ボタンの角丸 */
+    display: inline-block; /* ボタンをインラインブロックに設定 */
+}
+
+.custom-label-button:hover {
+    background-color: #0056b3; /* マウスオーバー時の背景色 */
+}
+</style>

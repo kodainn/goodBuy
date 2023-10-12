@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 
 const props = defineProps({
-    typeDiv: Array,
+    typeDivKv: Object,
     name: String,
     width: String,
     height: String
@@ -10,17 +10,17 @@ const props = defineProps({
 
 const typeDivItems = ref([]);
 
-for(let item of props.typeDiv) {
+for(const [typeDetailDiv, typeDetailName] of Object.entries(props.typeDivKv)) {
     typeDivItems.value.push({
-        'typeName': item['type_detail_name'],
-        'typeValue': item['type_detail_div']
+        'typeName': typeDetailName,
+        'typeValue': typeDetailDiv
     });
 }
 
 </script>
 
 <template>
-    <v-combobox
+    <v-select
         :label="name"
         :items="typeDivItems"
         :style="`width: ${width}px; height: ${height}px`"
@@ -28,5 +28,5 @@ for(let item of props.typeDiv) {
         item-value="typeValue"
         @change="$emit('update:modelValue', $event.target.value)"
         variant="outlined"
-    ></v-combobox>
+    ></v-select>
 </template>

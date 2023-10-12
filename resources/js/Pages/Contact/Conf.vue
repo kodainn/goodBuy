@@ -1,25 +1,27 @@
 <script setup>
-import { Link, router } from "@inertiajs/vue3";
+import { router } from "@inertiajs/vue3";
 import CommonHeader from "@/Components/CommonHeader.vue";
-import TextField from "@/Components/TextField.vue";
-import TextArea from "@/Components/TextArea.vue";
 import Button from "@/Components/Button.vue";
 import ErrorMessage from "@/Components/ErrorMessage.vue";
 import { reactive } from "vue";
 
 const props = defineProps({
     loginUser: Object,
+    inputs: Object,
     errors: Object
 });
 
+console.log(props.inputs);
+
 const form = reactive({
-    email: null,
-    title: null,
-    body: null
+    email: props.inputs['email'],
+    title: props.inputs['title'],
+    body: props.inputs['body']
 });
 
-const confFormSend = () => {
-    router.post(route('contact.conf'), form);
+
+const compSendForm = () => {
+    router.post(route('contact.comp'), form);
 }
 </script>
 
@@ -29,34 +31,25 @@ const confFormSend = () => {
             <CommonHeader :loginUser="props.loginUser"></CommonHeader>
             <v-main>
                 <v-container>
-                    <form @submit.prevent="confFormSend">
+                    <form @submit.prevent="compSendForm">
                         <v-row>
                             <v-col offset="2" cols="8">
-                                <TextField
-                                    label="メールアドレス"
-                                    v-model="form.email"
-                                >
-                                </TextField>
+                                <h4>メールアドレス:</h4>
+                                <p>{{ props.inputs['email'] }}</p>
                                 <ErrorMessage :errorMessage="errors.email"></ErrorMessage>
                             </v-col>
                         </v-row>
                         <v-row>
                             <v-col offset="2" cols="8">
-                                <TextField
-                                    label="タイトル"
-                                    v-model="form.title"
-                                >
-                                </TextField>
+                                <h4>タイトル:</h4>
+                                <p>{{ props.inputs['title'] }}</p>
                                 <ErrorMessage :errorMessage="errors.title"></ErrorMessage>
                             </v-col>
                         </v-row>
                         <v-row>
                             <v-col offset="2" cols="8">
-                                <TextArea
-                                    label="お問い合わせ内容"
-                                    v-model="form.body"
-                                >
-                                </TextArea>
+                                <h4>お問い合わせ内容:</h4>
+                                <p>{{ props.inputs['body'] }}</p>
                                 <ErrorMessage :errorMessage="errors.body"></ErrorMessage>
                             </v-col>
                         </v-row>
@@ -64,7 +57,7 @@ const confFormSend = () => {
                             <v-col offset="2" cols="4">
                                 <Button
                                     type="submit"
-                                    name="入力内容確認"
+                                    name="お問い合わせ送信"
                                     width="1000"
                                     backgroundColor="#993300"
                                     color="#FFF"

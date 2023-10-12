@@ -16,10 +16,38 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::resource('/postlist', PostListController::class);
+//投稿
+Route::prefix('postlist')->name('postlist.')->controller(PostListController::class)->group(function() {
 
-Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+    Route::middleware('auth')->group(function() {
+        Route::get('/getpost', 'getPost');
+        Route::post('/', 'store')->name('store');
+        Route::post('/good/{post_uuid}', 'goodStore');
+        Route::delete('/good/{post_uuid}', 'goodDelete');
+    });
 
-Route::resource('/profile', ProfileController::class);
+    Route::get('/search/{genre}', 'searchGenre');
+    Route::get('/', 'index')->name('index');
+    Route::get('/{post_uuid}', 'show')->name('show');
+});
+
+
+//お問い合わせ
+Route::prefix('contact')->name('contact.')->controller(ContactController::class)->group(function() {
+    Route::get('/', 'index')->name('index');
+    Route::post('/conf', 'conf')->name('conf');
+    Route::post('/comp', 'comp')->name('comp');
+});
+
+
+//プロフィール
+Route::prefix('profile')->name('profile.')->controller(ProfileController::class)->middleware('auth')->group(function() {
+    Route::post('/follow/{user_uuid}', 'followStore');
+    Route::delete('/follow/{user_uuid}', 'followDelete');
+    Route::get('/', 'index')->name('index');
+    Route::post('/', 'store')->name('store');
+    Route::get('/{user_uuid}', 'show')->name('show');
+});
+
 
 require __DIR__.'/auth.php';

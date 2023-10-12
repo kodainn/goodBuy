@@ -16,4 +16,9 @@ class TblFollow extends Model
         'user_uuid',
         'follow_user_uuid'
     ];
+
+    public function users()
+    {
+        return $this->hasMany(TblUser::class, 'user_uuid', 'follow_user_uuid');
+    }
 }

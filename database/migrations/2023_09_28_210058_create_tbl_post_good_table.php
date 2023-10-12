@@ -17,7 +17,7 @@ return new class extends Migration
             $table->uuid('post_good_uuid')->primary();
             $table->uuid('post_uuid');
             $table->uuid('user_uuid');
-            $table->timestamps('created_at');
+            $table->timestamp('created_at')->useCurrent()->nullable();
         });
     }
 
