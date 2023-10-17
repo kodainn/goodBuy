@@ -23,7 +23,9 @@ Route::prefix('postlist')->name('postlist.')->controller(PostListController::cla
         Route::get('/getpost', 'getPost');
         Route::post('/', 'store')->name('store');
         Route::post('/good/{post_uuid}', 'goodStore');
+        Route::post('/message/{post_uuid}', 'messageStore');
         Route::delete('/good/{post_uuid}', 'goodDelete');
+        Route::delete('/{post_uuid}', 'delete');
     });
 
     Route::get('/search/{genre}', 'searchGenre');

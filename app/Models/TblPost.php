@@ -24,11 +24,6 @@ class TblPost extends Model
         return $this->hasMany(TblPostImage::class, 'post_uuid');
     }
 
-    public function messages()
-    {
-        return $this->hasMany(TblPostMessage::class, 'post_uuid');
-    }
-
     public function goods()
     {
         return $this->hasMany(TblPostGood::class, 'post_uuid');

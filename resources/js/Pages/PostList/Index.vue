@@ -1,26 +1,48 @@
 <script setup>
 import CommonHeader from "@/Components/CommonHeader.vue";
-import { reactive } from "vue";
 import SvgIcon from "@jamescoyle/vue-icon";
 import { mdiHeart } from "@mdi/js";
 import { mdiPlus } from "@mdi/js";
-import { ref, watch } from "vue";
+import { ref, watch, reactive } from "vue";
 import { Link, router } from "@inertiajs/vue3";
 import Button from "@/Components/Button.vue";
-import TextField from "@/Components/TextField.vue";
 import PullDown from "@/Components/PullDown.vue";
+import axios from "axios";
+import TextField from "@/Components/TextField.vue";
 import ErrorMessage from "@/Components/ErrorMessage.vue";
 import TextArea from "@/Components/TextArea.vue";
-import axios from "axios";
 
 const props = defineProps({
     loginUser: Object,
     typeDivKv: Object,
-    posts: Array,
+    posts: Object,
     errors: Object
 });
 
-const setFrontPost = ref(props.posts);
+const frontPost = ref(props.posts);
+
+const heart = mdiHeart;
+const plus = mdiPlus;
+
+const searchGenre = ref("");
+const getSearchGenreList = async() => {
+    await axios.get('/postlist/search/' + searchGenre.value)
+    .then(res => {
+        frontPost.value = res.data;
+    });
+};
+watch(searchGenre, getSearchGenreList);
+
+const postDelete = async(post_uuid) => {
+    if(confirm('本当に削除しますか?')) {
+        await axios.delete('/postlist/' + post_uuid)
+        .then(res => {
+            if(res.status === 200) {
+                frontPost.value = res.data;
+            }
+        });
+    }
+}
 
 const dialog = ref(false);
 
@@ -42,23 +64,11 @@ const sendForm = () => {
             dialog.value = false;
             await axios.get('/postlist/getpost')
             .then(res => {
-                setFrontPost.value = res.data;
-            });
+                frontPost.value = res.data;
+            })
         }
     });
 }
-
-const heart = mdiHeart;
-const plus = mdiPlus;
-
-const searchGenre = ref("");
-const getSearchGenreList = async() => {
-    await axios.get('/postlist/search/' + searchGenre.value)
-    .then(res => {
-        setFrontPost.value = res.data;
-    });
-};
-watch(searchGenre, getSearchGenreList);
 
 const imageReviewList = ref([]);
 const pushImagePathList = ($event) => {
@@ -73,14 +83,14 @@ const pushImagePathList = ($event) => {
 <template>
     <v-app>
         <v-container>
-            <CommonHeader :loginUser="props.loginUser"></CommonHeader>
+            <CommonHeader :loginUser="loginUser"></CommonHeader>
             <v-main>
                 <v-container>
                     <!-- 検索ボックスエリア -->
                     <v-row>
                         <v-col offset="0" cols="4">
                             <PullDown
-                                :typeDivKv="props.typeDivKv"
+                                :typeDivKv="typeDivKv"
                                 name="ジャンル"
                                 v-model="searchGenre"
                             >
@@ -89,7 +99,7 @@ const pushImagePathList = ($event) => {
                     </v-row>
                     <!-- 一覧表示エリア -->
                     <v-row>
-                        <v-col offset="0" cols="4" v-for="post of setFrontPost">
+                        <v-col offset="0" cols="4" v-for="post of frontPost">
                             <v-card class="mx-auto my-12" max-width="374">
                                 <template v-slot:loader="{ isActive }">
                                     <v-progress-linear
@@ -106,10 +116,10 @@ const pushImagePathList = ($event) => {
                                 ></v-img>
                                 <v-card-text>
                                     <div class="text-h5 text-primary">
-                                        {{ props.typeDivKv[post['genre_div']] }}
+                                        {{ typeDivKv[post['genre_div']] }}
                                     </div>
                                     <div class="text-h6">
-                                        {{ post['title'] }}
+                                        {{ post['title'].length >= 15 ? post['title'].substr(0, 15) + '...' : post['title'] }}
                                     </div>
                                 </v-card-text>
                                 <v-card-actions>
@@ -127,9 +137,17 @@ const pushImagePathList = ($event) => {
                                                 >
                                                 </Button>
                                             </Link>
+                                            <Button
+                                                v-if="loginUser && loginUser['user_uuid'] === post['user_uuid']"
+                                                variant="text"
+                                                name="削除"
+                                                color="red"
+                                                @click="postDelete(post['post_uuid'])"
+                                            >
+                                            </Button>
                                         </v-col>
                                         <v-col offset="3">
-                                            <template v-if="props.loginUser">
+                                            <template v-if="loginUser">
                                                 <svg-icon
                                                     type="mdi"
                                                     :path="heart"
@@ -145,7 +163,7 @@ const pushImagePathList = ($event) => {
                         </v-col>
                     </v-row>
                     <!-- 投稿作成エリア -->
-                    <template v-if="props.loginUser">
+                    <template v-if="loginUser">
                         <v-row justify="center">
                             <v-dialog
                                 v-model="dialog"
@@ -159,8 +177,7 @@ const pushImagePathList = ($event) => {
                                         color="#993300"
                                         v-bind:="props"
                                     >
-                                        <svg-icon type="mdi" :path="plus">
-                                        </svg-icon>
+                                        <svg-icon type="mdi" :path="plus"></svg-icon>
                                     </v-btn>
                                 </template>
                                 <v-card>
@@ -199,7 +216,7 @@ const pushImagePathList = ($event) => {
                                                             @change="pushImagePathList($event)"
                                                             ref="image"
                                                         >
-                                                        <ErrorMessage :errorMessage="props.errors.imageList"></ErrorMessage>
+                                                        <ErrorMessage :errorMessage="errors.imageList"></ErrorMessage>
                                                     </v-col>
                                                 </v-row>
                                                 <v-row>
@@ -210,7 +227,7 @@ const pushImagePathList = ($event) => {
                                                             autocomplete
                                                         >
                                                         </TextField>
-                                                        <ErrorMessage :errorMessage="props.errors.title"></ErrorMessage>
+                                                        <ErrorMessage :errorMessage="errors.title"></ErrorMessage>
                                                     </v-col>
                                                 </v-row>
                                                 <v-row>
@@ -226,12 +243,12 @@ const pushImagePathList = ($event) => {
                                                 <v-row>
                                                     <v-col offset="3" cols="4">
                                                         <PullDown
-                                                            :typeDivKv="props.typeDivKv"
+                                                            :typeDivKv="typeDivKv"
                                                             name="ジャンル"
                                                             v-model="form.genreDiv"
                                                         >
                                                         </PullDown>
-                                                        <ErrorMessage :errorMessage="props.errors.genreDiv"></ErrorMessage>
+                                                        <ErrorMessage :errorMessage="errors.genreDiv"></ErrorMessage>
                                                     </v-col>
                                                 </v-row>
                                                 <v-row>

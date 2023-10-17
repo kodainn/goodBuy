@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PostRequest;
 use App\Models\TblPost;
+use App\Models\TblPostMessage;
 use App\Models\TblTypeDiv;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ class PostListController extends Controller
         }
         $posts = TblPost::with(['images' => function ($query) {
             $query->orderBy('image_sort', 'asc');
-        }, 'goods'])->withCount('goods')->get();
+        }, 'goods'])->withCount('goods')->orderBy('created_at', 'desc')->get();
         return Inertia::render('PostList/Index', [
             'loginUser' => $loginUser,
             'typeDivKv' => $typeDivKv,
@@ -43,7 +44,7 @@ class PostListController extends Controller
     {
         $posts = TblPost::where('genre_div', '=', $genre)->with(['images' => function ($query) {
             $query->orderBy('image_sort', 'asc');
-        }, 'goods'])->withCount('goods')->get();
+        }, 'goods'])->withCount('goods')->orderBy('created_at', 'desc')->get();
 
         return response()->json($posts);
     }
@@ -52,7 +53,7 @@ class PostListController extends Controller
     {
         $posts = TblPost::with(['images' => function ($query) {
             $query->orderBy('image_sort', 'asc');
-        }, 'goods'])->withCount('goods')->get();
+        }, 'goods'])->withCount('goods')->orderBy('created_at', 'desc')->get();
 
         return response()->json($posts);
     }
@@ -70,11 +71,11 @@ class PostListController extends Controller
 
             $post_uuid = Uuid::uuid4();
             DB::table('tbl_post')->insert([
-            'post_uuid' => $post_uuid,
-            'user_uuid' => Auth::id(),
-            'title' => $request->title,
-            'review' => $request->review,
-            'genre_div' => $request->genreDiv
+                'post_uuid' => $post_uuid,
+                'user_uuid' => Auth::id(),
+                'title' => $request->title,
+                'review' => $request->review,
+                'genre_div' => $request->genreDiv
             ]);
             if(!empty($request->imageList)) {
                 $insertList = [];
@@ -115,6 +116,23 @@ class PostListController extends Controller
         DB::table('tbl_post_good')->where('post_uuid', '=', $post_uuid)->where('user_uuid', '=', Auth::id())->delete();
     }
 
+    public function messageStore(Request $request, $post_uuid)
+    {
+
+        DB::table('tbl_post_message')->insert([
+            [
+                'post_message_uuid' => Uuid::uuid4(),
+                'post_uuid' => $post_uuid,
+                'user_uuid' => Auth::id(),
+                'message' => $request['inputMessage']
+            ]
+        ]);
+
+        $message = TblPostMessage::where('post_uuid', '=', $post_uuid)->with('user')->orderBy('created_at', 'desc')->get();
+
+        return response()->json($message);
+    }
+
     /**
      * Display the specified resource.
      *
@@ -125,43 +143,24 @@ class PostListController extends Controller
     {
         $loginUser = Auth::user();
         $post = TblPost::where('post_uuid', '=', $post_uuid)->with(['images', 'user', 'goods'])->withCount('goods')->first();
+        $message = TblPostMessage::where('post_uuid', '=', $post_uuid)->with('user')->orderBy('created_at', 'desc')->get();
+        $post['messages_count'] = TblPostMessage::where('post_uuid', '=', $post_uuid)->count();
+
         return Inertia::render('PostList/Show', [
             'post' => $post,
-            'loginUser' => $loginUser
+            'loginUser' => $loginUser,
+            'message' => $message,
+            'backUrl' => url()->previous()
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($post_uuid)
+    public function delete($post_uuid)
     {
-        //
-    }
+        DB::table('tbl_post')->where('post_uuid', '=', $post_uuid)->where('user_uuid', '=', Auth::id())->delete();
+        $posts = TblPost::with(['images' => function ($query) {
+            $query->orderBy('image_sort', 'asc');
+        }, 'goods'])->withCount('goods')->orderBy('created_at', 'desc')->get();
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+        return response()->json($posts);
     }
 }

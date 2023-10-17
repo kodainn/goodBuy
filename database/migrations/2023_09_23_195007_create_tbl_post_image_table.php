@@ -18,7 +18,6 @@ return new class extends Migration
             $table->uuid('post_uuid');
             $table->text('post_image_path');
             $table->integer('image_sort');
-            $table->timestamp('updated_at')->useCurrent()->nullable();
             $table->timestamp('created_at')->useCurrent()->nullable();
         });
     }

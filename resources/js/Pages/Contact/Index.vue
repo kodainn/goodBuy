@@ -1,5 +1,5 @@
 <script setup>
-import { Link, router } from "@inertiajs/vue3";
+import { router } from "@inertiajs/vue3";
 import CommonHeader from "@/Components/CommonHeader.vue";
 import TextField from "@/Components/TextField.vue";
 import TextArea from "@/Components/TextArea.vue";
@@ -9,13 +9,15 @@ import { reactive } from "vue";
 
 const props = defineProps({
     loginUser: Object,
-    errors: Object
+    errors: Object,
+    contact: Object
 });
 
+
 const form = reactive({
-    email: null,
-    title: null,
-    body: null
+    email: props.contact['email'],
+    title: props.contact['title'],
+    body: props.contact['body']
 });
 
 const confFormSend = () => {

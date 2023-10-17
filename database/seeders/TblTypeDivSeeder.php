@@ -38,7 +38,7 @@ class TblTypeDivSeeder extends Seeder
             [
                 'type_name' => 'genre',
                 'type_detail_div' => 2,
-                'type_detail_name' => '衣料品とファッション'
+                'type_detail_name' => 'ファッション'
             ],
             [
                 'type_name' => 'genre',

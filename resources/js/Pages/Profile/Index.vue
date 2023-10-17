@@ -32,6 +32,7 @@ const dialog = ref(false);
 
 const setFrontUser = ref(props.user);
 const setFrontFollower = ref(props.followers);
+const frontPost = ref(props.posts);
 
 const followFrontFlg = ref(false);
 const sendCreateFollow = async(user_uuid) => {
@@ -56,6 +57,17 @@ const sendDeleteFollow = async(user_uuid) => {
             }
         }
     });
+}
+
+const postDelete = async(post_uuid) => {
+    if(confirm('本当に削除しますか?')) {
+        await axios.delete('/postlist/' + post_uuid)
+        .then(res => {
+            if(res.status === 200) {
+                frontPost.value = res.data;
+            }
+        });
+    }
 }
 
 const form = reactive({
@@ -242,7 +254,7 @@ const setIconPath = ($event) => {
                                                 >
                                                     <v-container fluid>
                                                         <v-row>
-                                                            <v-col offset="0" cols="4" v-for="post of props.posts">
+                                                            <v-col offset="0" cols="4" v-for="post of frontPost">
                                                                 <v-card class="mx-auto my-12" max-width="374">
                                                                     <template v-slot:loader="{ isActive }">
                                                                         <v-progress-linear
@@ -262,7 +274,7 @@ const setIconPath = ($event) => {
                                                                             {{ props.typeGenreDivKv[post['genre_div']] }}
                                                                         </div>
                                                                         <div class="text-h6">
-                                                                            {{ post['title'] }}
+                                                                            {{ post['title'].length >= 15 ? post['title'].substr(0, 15) + '...' : post['title'] }}
                                                                         </div>
                                                                     </v-card-text>
                                                                     <v-card-actions>
@@ -280,6 +292,14 @@ const setIconPath = ($event) => {
                                                                                     >
                                                                                     </Button>
                                                                                 </Link>
+                                                                                <Button
+                                                                                    v-if="loginUser && loginUser['user_uuid'] === post['user_uuid']"
+                                                                                    variant="text"
+                                                                                    name="削除"
+                                                                                    color="red"
+                                                                                    @click="postDelete(post['post_uuid'])"
+                                                                                >
+                                                                                </Button>
                                                                             </v-col>
                                                                             <v-col offset="1">
                                                                                 <template v-if="props.loginUser">

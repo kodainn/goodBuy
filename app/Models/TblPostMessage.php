@@ -17,4 +17,9 @@ class TblPostMessage extends Model
         'user_uuid',
         'message'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(TblUser::class, 'user_uuid');
+    }
 }

@@ -1,5 +1,6 @@
 <script setup>
 import { router } from "@inertiajs/vue3";
+import { Link } from "@inertiajs/vue3";
 import CommonHeader from "@/Components/CommonHeader.vue";
 import Button from "@/Components/Button.vue";
 import ErrorMessage from "@/Components/ErrorMessage.vue";
@@ -54,7 +55,18 @@ const compSendForm = () => {
                             </v-col>
                         </v-row>
                         <v-row>
-                            <v-col offset="2" cols="4">
+                            <v-col offset="2" cols="1">
+                                <Link :href="route('contact.index')">
+                                    <Button
+                                        type="submit"
+                                        name="戻る"
+                                        width="1000"
+                                        backgroundColor="#993300"
+                                        color="#FFF"
+                                    ></Button>
+                                </Link>
+                            </v-col>
+                            <v-col cols="3">
                                 <Button
                                     type="submit"
                                     name="お問い合わせ送信"

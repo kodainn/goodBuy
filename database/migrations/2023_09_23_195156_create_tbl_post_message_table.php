@@ -18,7 +18,6 @@ return new class extends Migration
             $table->uuid('post_uuid');
             $table->uuid('user_uuid');
             $table->string('message', 100);
-            $table->timestamp('updated_at')->useCurrent()->nullable();
             $table->timestamp('created_at')->useCurrent()->nullable();
         });
     }

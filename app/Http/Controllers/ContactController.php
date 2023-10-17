@@ -14,14 +14,24 @@ class ContactController extends Controller
     public function index()
     {
         $loginUser = Auth::user();
+        $contact = session()->get('contact');
+        if(empty($contact)) {
+            $contact = [
+                ['email' => ''],
+                ['title' => ''],
+                ['body' => '']
+            ];
+        }
         return Inertia::render('Contact/Index', [
-            'loginUser' => $loginUser
+            'loginUser' => $loginUser,
+            'contact' => $contact
         ]);
     }
 
     public function conf(ContactRequest $request)
     {
         $loginUser = Auth::user();
+        session()->put('contact', $request->all());
         return Inertia::render('Contact/Conf', [
             'loginUser' => $loginUser,
             'inputs' => $request->all()
@@ -39,6 +49,7 @@ class ContactController extends Controller
         $request->session()->regenerateToken();
 
         //送信完了ページのviewを表示
+        session()->forget('contact');
         return Inertia::render('Contact/Comp');
     }
 }

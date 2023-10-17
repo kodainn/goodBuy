@@ -2,6 +2,7 @@
 import CommonHeader from "@/Components/CommonHeader.vue";
 import SvgIcon from "@jamescoyle/vue-icon";
 import axios from "axios";
+import TextField from "@/Components/TextField.vue";
 import Icon from "@/Components/Icon.vue";
 import Button from "@/Components/Button.vue";
 import { Link } from "@inertiajs/vue3";
@@ -9,20 +10,23 @@ import { ref } from "vue";
 import { mdiHeart } from "@mdi/js";
 import { mdiHeartOutline } from "@mdi/js";
 import { mdiMessageOutline } from '@mdi/js';
+import { formatDateTimeJp } from "@/format";
 
 const props = defineProps({
-    post: Object,
     loginUser: Object,
+    post: Object,
+    message: Object,
+    backUrl: String
 });
 
 const heart = mdiHeart;
 const heartOutline = mdiHeartOutline;
 const messageOutline = mdiMessageOutline;
 
+const setFrontPost = ref(props.post);
+const setFrontMessage = ref(props.message);
+
 const dialog = ref(false);
-const notifications = ref(false);
-const sound = ref(false);
-const widgets = ref(false);
 
 const goodFrontFlg = ref(false);
 const sendCreateGood = async(post_uuid) => {
@@ -30,20 +34,33 @@ const sendCreateGood = async(post_uuid) => {
     .then(res => {
         if(res.status === 200) {
             goodFrontFlg.value = true;
-            props.post['goods_count']++;
+            setFrontPost.value['goods_count']++;
         }
     });
 }
+
 const sendDeleteGood = async(post_uuid) => {
     await axios.delete('/postlist/good/' + post_uuid)
     .then(res => {
         if(res.status === 200) {
             goodFrontFlg.value = false;
-            props.post['goods_count']--;
+            setFrontPost.value['goods_count']--;
             let index;
-            if((index = props.post['goods'].findIndex(item => item.user_uuid === props.loginUser['user_uuid'])) >= 0) {
-                props.post['goods'][index]['user_uuid'] = '';
+            if((index = setFrontPost.value['goods'].findIndex(item => item.user_uuid === props.loginUser['user_uuid'])) >= 0) {
+                setFrontPost.value['goods'][index]['user_uuid'] = '';
             }
+        }
+    });
+}
+
+const inputMessage = ref('');
+const sendCreateMessage = async(post_uuid) => {
+    await axios.post('/postlist/message/' + post_uuid, { inputMessage: inputMessage.value })
+    .then(res => {
+        if(res.status === 200) {
+            setFrontMessage.value = res.data;
+            setFrontPost.value['messages_count'] += 1;
+            inputMessage.value = '';
         }
     });
 }
@@ -54,12 +71,12 @@ const PagePrev = (p) => {
     if (currentImagePage.value > 1) {
         currentImagePage.value--;
     } else {
-        currentImagePage.value = props.post["images"].length;
+        currentImagePage.value = setFrontPost.value["images"].length;
     }
 };
 const pageNext = (p) => {
     p.onClick();
-    if (currentImagePage.value < props.post["images"].length) {
+    if (currentImagePage.value < setFrontPost.value["images"].length) {
         currentImagePage.value++;
     } else {
         currentImagePage.value = 1;
@@ -70,11 +87,11 @@ const pageNext = (p) => {
 <template>
     <v-app>
         <v-container>
-            <CommonHeader :loginUser="props.loginUser"></CommonHeader>
+            <CommonHeader :loginUser="loginUser"></CommonHeader>
             <v-main>
                 <v-row>
                     <v-col offset="1" cols="10">
-                        {{ currentImagePage + "/" + props.post["images"].length }}
+                        {{ currentImagePage + "/" + setFrontPost["images"].length }}
                         <v-carousel height="350" show-arrows hide-delimiters>
                             <template v-slot:prev="{ props }">
                                 <v-btn
@@ -92,7 +109,7 @@ const pageNext = (p) => {
                                     >次</v-btn
                                 >
                             </template>
-                            <template v-for="image of props.post['images']">
+                            <template v-for="image of setFrontPost['images']">
                                 <v-carousel-item
                                     :src="image['post_image_path']"
                                     cover
@@ -109,100 +126,88 @@ const pageNext = (p) => {
                     </v-col>
                     <v-spacer></v-spacer>
                     <v-col cols="1">
-                        <template v-if="props.loginUser">
-                            <template v-if="(props.post['goods'] && props.post['goods'].some(item => item.user_uuid === props.loginUser['user_uuid'])) || goodFrontFlg">
+                        <template v-if="loginUser">
+                            <template v-if="(setFrontPost['goods'] && setFrontPost['goods'].some(item => item.user_uuid === loginUser['user_uuid'])) || goodFrontFlg">
                                 <svg-icon
                                     type="mdi"
                                     :path="heart"
                                     style="color: red"
-                                    @click="sendDeleteGood(props.post['post_uuid'])"
+                                    @click="sendDeleteGood(setFrontPost['post_uuid'])"
                                 ></svg-icon
-                                >{{ props.post['goods_count'] }}
+                                >{{ setFrontPost['goods_count'] }}
                             </template>
                             <template v-else>
                                 <svg-icon
                                     type="mdi"
                                     :path="heartOutline"
-                                    @click="sendCreateGood(props.post['post_uuid'])"
+                                    @click="sendCreateGood(setFrontPost['post_uuid'])"
                                 ></svg-icon
-                                >{{ props.post['goods_count'] }}
+                                >{{ post['goods_count'] }}
                             </template>
                         </template>
                     </v-col>
                     <v-col cols="1">
-                        <svg-icon
-                            type="mdi"
-                            :path="messageOutline"
-                        >
-                        </svg-icon>
                         <v-dialog
                             v-model="dialog"
                             fullscreen
                             :scrim="false"
                             transition="dialog-bottom-transition"
                         >
-                        <template v-slot:activator="{ props }">
-                            <v-btn
-                                color="primary"
-                                dark
-                                v-bind="props"
-                            >
-                                Open Dialog
-                            </v-btn>
-                        </template>
-                        <v-card>
-                            <v-toolbar
-                                dark
-                                color="primary"
-                            >
-                                <v-btn
-                                    icon
+                            <template v-slot:activator="{ props }">
+                                <svg-icon
+                                    v-bind="props"
+                                    type="mdi"
+                                    :path="messageOutline"
+                                ></svg-icon>
+                                {{ setFrontPost['messages_count'] }}
+                            </template>
+                            <v-card>
+                                <v-toolbar
                                     dark
-                                    @click="dialog = false"
+                                    color="#993300"
                                 >
-                                    <v-icon>mdi-close</v-icon>
-                                </v-btn>
-                                <v-toolbar-title>Settings</v-toolbar-title>
-                                <v-spacer></v-spacer>
-                                <v-toolbar-items>
                                     <v-btn
-                                        variant="text"
+                                        icon
+                                        dark
                                         @click="dialog = false"
                                     >
-                                        Save
+                                        閉じる
                                     </v-btn>
-                                </v-toolbar-items>
                                 </v-toolbar>
-                                <v-list
-                                    lines="two"
-                                    subheader
-                                >
-                                    <v-list-subheader>User Controls</v-list-subheader>
-                                    <v-list-item title="Content filtering" subtitle="Set the content filtering level to restrict apps that can be downloaded"></v-list-item>
-                                    <v-list-item title="Password" subtitle="Require password for purchase or use password to restrict purchase"></v-list-item>
-                                </v-list>
-                                <v-divider></v-divider>
-                                <v-list
-                                    lines="two"
-                                    subheader
-                                >
-                                    <v-list-subheader>General</v-list-subheader>
-                                    <v-list-item title="Notifications" subtitle="Notify me about updates to apps or games that I downloaded">
-                                        <template v-slot:prepend>
-                                            <v-checkbox v-model="notifications"></v-checkbox>
-                                        </template>
-                                    </v-list-item>
-                                    <v-list-item title="Sound" subtitle="Auto-update apps at any time. Data charges may apply">
-                                        <template v-slot:prepend>
-                                            <v-checkbox v-model="sound"></v-checkbox>
-                                        </template>
-                                    </v-list-item>
-                                    <v-list-item title="Auto-add widgets" subtitle="Automatically add home screen widgets">
-                                        <template v-slot:prepend>
-                                            <v-checkbox v-model="widgets"></v-checkbox>
-                                        </template>
-                                    </v-list-item>
-                                </v-list>
+                                <v-card-text>
+                                    <v-container>
+                                        <v-row v-for="message of setFrontMessage">
+                                            <v-col offset="2" cols="8">
+                                                <div style="display: flex;">
+                                                    <Icon :path="message['user']['icon_path']" size="60"></Icon>
+                                                    <div>{{ message['user']['nick_name'] }} : </div>
+                                                    <div>{{ formatDateTimeJp(message['created_at']) }}</div>
+                                                </div>
+                                                <v-card :text="message['message']" variant="tonal"></v-card>
+                                            </v-col>
+                                        </v-row>
+                                    </v-container>
+                                </v-card-text>
+                                <v-footer v-if="loginUser" class="custom-footer">
+                                    <v-row>
+                                        <v-col offset="1" cols="8">
+                                            <TextField
+                                                label="メッセージ"
+                                                v-model="inputMessage"
+                                            >
+                                            </TextField>
+                                        </v-col>
+                                        <v-col cols="2">
+                                            <Button
+                                                :disabled="inputMessage ? false : true"
+                                                name="送信"
+                                                @click="sendCreateMessage(setFrontPost['post_uuid'])"
+                                                :style="{ height: '67%' }"
+                                            >
+                                            </Button>
+                                        </v-col>
+                                    </v-row>
+                                </v-footer>
                             </v-card>
                         </v-dialog>
                     </v-col>
@@ -211,7 +216,7 @@ const pageNext = (p) => {
                 <v-row>
                     <v-col>
                         <div class="text-h5">
-                            {{ props.post['title'] }}
+                            {{ setFrontPost['title'] }}
                         </div>
                     </v-col>
                 </v-row>
@@ -226,7 +231,7 @@ const pageNext = (p) => {
                 <v-row>
                     <v-col>
                         <div class="text-h5">
-                            {{ props.post['review'] }}
+                            {{ setFrontPost['review'] }}
                         </div>
                     </v-col>
                 </v-row>
@@ -240,11 +245,11 @@ const pageNext = (p) => {
                 <hr>
                 <v-row>
                     <v-col>
-                        <Link :href="route('profile.show', {user_uuid: props.post['user_uuid']})" class="custom-link">
+                        <Link :href="route('profile.show', {user_uuid: setFrontPost['user_uuid']})" class="custom-link">
                             <div class="flex">
-                                <Icon :path="props.post['user']['icon_path']"></Icon>
+                                <Icon :path="setFrontPost['user']['icon_path']"></Icon>
                                 <div class="text-h5">
-                                    {{ props.post['user']['nick_name'] }}
+                                    {{ setFrontPost['user']['nick_name'] }}
                                 </div>
                             </div>
                         </Link>
@@ -252,13 +257,13 @@ const pageNext = (p) => {
                 </v-row>
                 <v-row>
                     <v-col>
-                        <a href="javascript:history.back();">
+                        <Link :href="backUrl">
                             <Button
                                 name="戻る"
                                 color="blue"
                             >
                             </Button>
-                        </a>
+                        </Link>
                     </v-col>
                 </v-row>
             </v-main>
@@ -274,5 +279,14 @@ const pageNext = (p) => {
 .custom-link {
     text-decoration: none;
     color: black;
+}
+
+.custom-footer {
+    position: sticky;
+    bottom: 0;
+    max-height: 15%;
+    background-color: white; /* フッターの背景色を設定してください */
+    z-index: 1; /* フッターが他の要素の上に表示されるようにz-indexを設定します */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); /* フッターの下部に影を追加します */
 }
 </style>
