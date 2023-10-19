@@ -119,13 +119,25 @@ const pageNext = (p) => {
                     </v-col>
                 </v-row>
                 <v-row>
-                    <v-col>
+                    <v-col
+                        cols="7"
+                        sm="4"
+                        md="3"
+                        lg="3"
+                    >
                         <div class="text-h5">
                             タイトル
                         </div>
                     </v-col>
-                    <v-spacer></v-spacer>
-                    <v-col cols="1">
+                    <v-col
+                        offset-sm="7"
+                        offset-md="7"
+                        offset-lg="7"
+                        cols="2"
+                        sm="2"
+                        md="1"
+                        lg="1"
+                    >
                         <template v-if="loginUser">
                             <template v-if="(setFrontPost['goods'] && setFrontPost['goods'].some(item => item.user_uuid === loginUser['user_uuid'])) || goodFrontFlg">
                                 <svg-icon
@@ -146,7 +158,12 @@ const pageNext = (p) => {
                             </template>
                         </template>
                     </v-col>
-                    <v-col cols="1">
+                    <v-col
+                        cols="2"
+                        sm="2"
+                        md="1"
+                        lg="1"
+                    >
                         <v-dialog
                             v-model="dialog"
                             fullscreen
@@ -177,11 +194,20 @@ const pageNext = (p) => {
                                 <v-card-text>
                                     <v-container>
                                         <v-row v-for="message of setFrontMessage">
-                                            <v-col offset="2" cols="8">
+                                            <v-col
+                                                offset-md="2"
+                                                offset-lg="2"
+                                                cols="12"
+                                                sm="12"
+                                                md="8"
+                                                lg="8"
+                                            >
                                                 <div style="display: flex;">
                                                     <Icon :path="message['user']['icon_path']" size="60"></Icon>
-                                                    <div>{{ message['user']['nick_name'] }} : </div>
-                                                    <div>{{ formatDateTimeJp(message['created_at']) }}</div>
+                                                    <div>
+                                                        <div>{{ message['user']['nick_name'] }}</div>
+                                                        <div>{{ formatDateTimeJp(message['created_at']) }}</div>
+                                                    </div>
                                                 </div>
                                                 <v-card :text="message['message']" variant="tonal"></v-card>
                                             </v-col>

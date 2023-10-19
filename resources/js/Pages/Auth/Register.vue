@@ -25,19 +25,46 @@ const submit = () => {
 <template>
     <v-app>
         <v-container>
-            <v-row style="margin: 5%;">
-                <v-col>
+            <v-row style="margin-top: 5%;">
+                <v-col
+                    offset-sm="3"
+                    offset-md="3"
+                    offset-lg="3"
+                    cols="8"
+                    sm="8"
+                    md="6"
+                    lg="6"
+                >
                     <ApplicationLogo></ApplicationLogo>
                 </v-col>
             </v-row>
             <v-row>
-                <v-col align="center" style="margin-bottom: 1%;">
+                <v-col
+                    offset-sm="3"
+                    offset-md="3"
+                    offset-lg="3"
+                    cols="12"
+                    sm="8"
+                    md="6"
+                    lg="6"
+                    align="center"
+                    style="margin-bottom: 1%;"
+                >
                     <h1>GOODSSHARESへようこそ</h1>
                 </v-col>
                 </v-row>
             <form @submit.prevent="submit">
                 <v-row>
-                    <v-col offset="4" cols="4" style="height: 100px;">
+                    <v-col
+                        offset-sm="3"
+                        offset-md="3"
+                        offset-lg="3"
+                        cols="12"
+                        sm="8"
+                        md="6"
+                        lg="6"
+                        style="height: 100px;"
+                    >
                         <TextField
                             id="user_id"
                             label="ユーザーID"
@@ -50,7 +77,16 @@ const submit = () => {
                     </v-col>
                 </v-row>
                 <v-row>
-                    <v-col offset="4" cols="4" style="height: 100px;">
+                    <v-col
+                        offset-sm="3"
+                        offset-md="3"
+                        offset-lg="3"
+                        cols="12"
+                        sm="8"
+                        md="6"
+                        lg="6"
+                        style="height: 100px;"
+                    >
                         <TextField
                             id="email"
                             label="メールアドレス"
@@ -63,7 +99,16 @@ const submit = () => {
                     </v-col>
                 </v-row>
                 <v-row>
-                    <v-col offset="4" cols="4" style="height: 100px;">
+                    <v-col
+                        offset-sm="3"
+                        offset-md="3"
+                        offset-lg="3"
+                        cols="12"
+                        sm="8"
+                        md="6"
+                        lg="6"
+                        style="height: 100px;"
+                    >
                         <TextField
                             type="password"
                             id="password"
@@ -77,7 +122,15 @@ const submit = () => {
                     </v-col>
                 </v-row>
                 <v-row>
-                    <v-col offset="4" cols="4">
+                    <v-col
+                        offset-sm="3"
+                        offset-md="3"
+                        offset-lg="3"
+                        cols="12"
+                        sm="4"
+                        md="4"
+                        lg="4"
+                    >
                         <Button
                             type="submit"
                             name="goodsharesに登録する"

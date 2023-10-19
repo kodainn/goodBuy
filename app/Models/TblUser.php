@@ -30,7 +30,9 @@ class TblUser extends Authenticatable
         'nick_name',
         'pr',
         'gender_div',
-        'icon_path'
+        'icon_path',
+        'reset_password_access_key',
+        'reset_password_expire_at'
     ];
 
     /**

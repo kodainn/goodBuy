@@ -3,29 +3,29 @@ import TextField from "@/Components/TextField.vue";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import Button from "@/Components/Button.vue";
 import ErrorMessage from "@/Components/ErrorMessage.vue";
-import { useForm } from "@inertiajs/vue3";
-import { Link } from "@inertiajs/vue3";
+import { reactive } from "vue";
+import { router } from "@inertiajs/vue3";
 
-defineProps({
+const props = defineProps({
+    userToken: Object,
     errors: Object
 });
 
-const form = useForm({
-    user_id: "",
-    password: "",
+
+const form = reactive({
+    resetToken: props.userToken['reset_password_access_key'],
+    password: null
 });
 
-const submit = () => {
-    form.post(route("login"), {
-        onFinish: () => form.reset("password"),
-    });
+const sendResetPassForm = () => {
+    router.post(route("password_reset.update"), form);
 };
 </script>
 
 <template>
     <v-app>
         <v-container>
-            <v-row style="margin: 5%;">
+            <v-row style="margin: 5%">
                 <v-col
                     offset-sm="3"
                     offset-md="3"
@@ -48,12 +48,12 @@ const submit = () => {
                     md="6"
                     lg="6"
                     align="center"
-                    style="margin-bottom: 1%;"
+                    style="margin-bottom: 1%"
                 >
-                    <h1>GOODSSHARESにログイン</h1>
+                    <h1>パスワード再設定</h1>
                 </v-col>
             </v-row>
-            <form @submit.prevent="submit">
+            <form @submit.prevent="sendResetPassForm">
                 <v-row>
                     <v-col
                         offset-sm="3"
@@ -63,49 +63,16 @@ const submit = () => {
                         sm="8"
                         md="6"
                         lg="6"
-                        style="height: 100px;"
+                        style="height: 100px"
                     >
                         <TextField
-                            label="ユーザーID"
-                            v-model="form.user_id"
-                            autocomplete
-                        />
-                        <ErrorMessage :errorMessage="errors.user_id"></ErrorMessage>
-                    </v-col>
-                </v-row>
-                <v-row>
-                    <v-col
-                        offset-sm="3"
-                        offset-md="3"
-                        offset-lg="3"
-                        cols="12"
-                        sm="8"
-                        md="6"
-                        lg="6"
-                        style="height: 100px;"
-                    >
-                        <TextField
-                            type="password"
-                            label="パスワード"
+                            label="新しいパスワード"
                             v-model="form.password"
                             autocomplete
                         />
-                        <ErrorMessage :errorMessage="errors.password"></ErrorMessage>
-                    </v-col>
-                </v-row>
-                <v-row>
-                    <v-col
-                        offset-sm="3"
-                        offset-md="3"
-                        offset-lg="3"
-                        cols="12"
-                        sm="8"
-                        md="6"
-                        lg="6"
-                    >
-                        <Link :href="route('password_reset.index')">
-                            パスワードを忘れた。
-                        </Link>
+                        <ErrorMessage
+                            :errorMessage="errors.password"
+                        ></ErrorMessage>
                     </v-col>
                 </v-row>
                 <v-row>
@@ -120,7 +87,7 @@ const submit = () => {
                     >
                         <Button
                             type="submit"
-                            name="goodsharesにログインする"
+                            name="パスワードを変更"
                             width="1000"
                             backgroundColor="#993300"
                             color="#FFF"

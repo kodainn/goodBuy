@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 
-const props = defineProps(['href', 'active']);
+const props = defineProps(['href', 'active', 'method']);
 
 const classes = computed(() =>
     props.active
@@ -16,7 +16,7 @@ const classes = computed(() =>
         as="button"
         :href="href"
         :style="classes"
-        method="get"
+        :method="method ? method : 'get'"
     >
         <v-tab>
             <slot />

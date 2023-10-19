@@ -71,7 +71,7 @@ class ContactSendmail extends Mailable
             with: [
                 'email' => $this->email,
                 'title' => $this->title,
-                'body'  => $this->body
+                'body'  => $this->body,
             ]
         );
     }

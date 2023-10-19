@@ -116,12 +116,25 @@ const setIconPath = ($event) => {
                                         </v-col>
                                     </v-row>
                                     <v-row>
-                                        <v-col offset="0" cols="4">
-                                            <div class="text-h4">
+                                        <v-col
+                                            offset="0"
+                                            sm="4"
+                                            md="4"
+                                            lg="4"
+                                        >
+                                            <div class="text-h5">
                                                 {{ props.user["nick_name"] }}
                                             </div>
                                         </v-col>
-                                        <v-col offset="6" cols="1" v-if="props.selfProfile">
+                                        <v-col
+                                            offset-sm="5"
+                                            offset-md="6"
+                                            offset-lg="6"
+                                            sm="1"
+                                            md="1"
+                                            lg="1"
+                                            v-if="props.selfProfile"
+                                        >
                                             <v-dialog
                                                 v-model="dialog"
                                                 transition="dialog-bottom-transition"
@@ -159,7 +172,14 @@ const setIconPath = ($event) => {
                                                                     </v-col>
                                                                 </v-row>
                                                                 <v-row>
-                                                                    <v-col offset="3" cols="3">
+                                                                    <v-col
+                                                                        offset-md="3"
+                                                                        offset-lg="3"
+                                                                        cols="12"
+                                                                        sm="12"
+                                                                        md="6"
+                                                                        lg="6"
+                                                                    >
                                                                         <label for="file-input" class="custom-label-button">アイコンを選ぶ</label>
                                                                         <input
                                                                             hidden
@@ -172,7 +192,14 @@ const setIconPath = ($event) => {
                                                                     </v-col>
                                                                 </v-row>
                                                                 <v-row>
-                                                                    <v-col offset="3" cols="4">
+                                                                    <v-col
+                                                                        offset-md="3"
+                                                                        offset-lg="3"
+                                                                        cols="12"
+                                                                        sm="12"
+                                                                        md="6"
+                                                                        lg="6"
+                                                                    >
                                                                         <TextField
                                                                             label="ニックネーム"
                                                                             v-model="form.nickName"
@@ -183,7 +210,14 @@ const setIconPath = ($event) => {
                                                                     </v-col>
                                                                 </v-row>
                                                                 <v-row>
-                                                                    <v-col offset="3" cols="6">
+                                                                    <v-col
+                                                                        offset-md="3"
+                                                                        offset-lg="3"
+                                                                        cols="12"
+                                                                        sm="12"
+                                                                        md="6"
+                                                                        lg="6"
+                                                                    >
                                                                         <TextArea
                                                                             label="自己PR"
                                                                             v-model="form.pr"
@@ -194,7 +228,14 @@ const setIconPath = ($event) => {
                                                                     </v-col>
                                                                 </v-row>
                                                                 <v-row>
-                                                                <v-col offset="3">
+                                                                <v-col
+                                                                    offset-md="3"
+                                                                    offset-lg="3"
+                                                                    cols="12"
+                                                                    sm="12"
+                                                                    md="6"
+                                                                    lg="6"
+                                                                >
                                                                     <Button
                                                                         name="保存する"
                                                                         color="blue"
@@ -209,7 +250,15 @@ const setIconPath = ($event) => {
                                                 </v-card>
                                             </v-dialog>
                                         </v-col>
-                                        <v-col offset="6" cols="2" v-else-if="!props.selfProfile && props.loginUser">
+                                        <v-col
+                                            v-else-if="!props.selfProfile && props.loginUser"
+                                            offset-sm="5"
+                                            offset-md="6"
+                                            offset-lg="6"
+                                            sm="1"
+                                            md="2"
+                                            lg="2"
+                                        >
                                             <Button
                                                 v-if="(props.allFollows && props.allFollows.some(item => item.user_uuid === props.loginUser['user_uuid'])) || followFrontFlg"
                                                 rounded
@@ -254,7 +303,14 @@ const setIconPath = ($event) => {
                                                 >
                                                     <v-container fluid>
                                                         <v-row>
-                                                            <v-col offset="0" cols="4" v-for="post of frontPost">
+                                                            <v-col
+                                                                offset="0"
+                                                                cols="12"
+                                                                sm="6"
+                                                                md="4"
+                                                                lg="3"
+                                                                v-for="post of frontPost"
+                                                            >
                                                                 <v-card class="mx-auto my-12" max-width="374">
                                                                     <template v-slot:loader="{ isActive }">
                                                                         <v-progress-linear

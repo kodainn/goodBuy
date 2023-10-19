@@ -63,7 +63,13 @@ const confFormSend = () => {
                             </v-col>
                         </v-row>
                         <v-row>
-                            <v-col offset="2" cols="4">
+                            <v-col
+                                offset="2"
+                                cols="6"
+                                sm="4"
+                                md="4"
+                                lg="3"
+                            >
                                 <Button
                                     type="submit"
                                     name="入力内容確認"

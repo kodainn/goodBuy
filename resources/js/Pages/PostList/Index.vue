@@ -88,7 +88,13 @@ const pushImagePathList = ($event) => {
                 <v-container>
                     <!-- 検索ボックスエリア -->
                     <v-row>
-                        <v-col offset="0" cols="4">
+                        <v-col
+                            offset="0"
+                            cols="12"
+                            sm="6"
+                            md="4"
+                            lg="3"
+                        >
                             <PullDown
                                 :typeDivKv="typeDivKv"
                                 name="ジャンル"
@@ -99,7 +105,14 @@ const pushImagePathList = ($event) => {
                     </v-row>
                     <!-- 一覧表示エリア -->
                     <v-row>
-                        <v-col offset="0" cols="4" v-for="post of frontPost">
+                        <v-col
+                            offset="0"
+                            cols="12"
+                            sm="6"
+                            md="4"
+                            lg="3"
+                            v-for="post of frontPost"
+                        >
                             <v-card class="mx-auto my-12" max-width="374">
                                 <template v-slot:loader="{ isActive }">
                                     <v-progress-linear
@@ -206,7 +219,14 @@ const pushImagePathList = ($event) => {
                                                     </template>
                                                 </v-row>
                                                 <v-row>
-                                                    <v-col offset="3" cols="3">
+                                                    <v-col
+                                                        offset-md="3"
+                                                        offset-lg="3"
+                                                        cols="12"
+                                                        sm="12"
+                                                        md="6"
+                                                        lg="6"
+                                                    >
                                                         <label for="file-input" class="custom-label-button">写真を選ぶ</label>
                                                         <input
                                                             hidden
@@ -220,7 +240,14 @@ const pushImagePathList = ($event) => {
                                                     </v-col>
                                                 </v-row>
                                                 <v-row>
-                                                    <v-col offset="3" cols="4">
+                                                    <v-col
+                                                        offset-md="3"
+                                                        offset-lg="3"
+                                                        cols="12"
+                                                        sm="12"
+                                                        md="6"
+                                                        lg="6"
+                                                    >
                                                         <TextField
                                                             label="タイトル"
                                                             v-model="form.title"
@@ -231,7 +258,14 @@ const pushImagePathList = ($event) => {
                                                     </v-col>
                                                 </v-row>
                                                 <v-row>
-                                                    <v-col offset="3" cols="6">
+                                                    <v-col
+                                                        offset-md="3"
+                                                        offset-lg="3"
+                                                        cols="12"
+                                                        sm="12"
+                                                        md="6"
+                                                        lg="6"
+                                                    >
                                                         <TextArea
                                                             label="レビュー"
                                                             v-model="form.review"
@@ -241,7 +275,14 @@ const pushImagePathList = ($event) => {
                                                     </v-col>
                                                 </v-row>
                                                 <v-row>
-                                                    <v-col offset="3" cols="4">
+                                                    <v-col
+                                                        offset-md="3"
+                                                        offset-lg="3"
+                                                        cols="12"
+                                                        sm="12"
+                                                        md="6"
+                                                        lg="6"
+                                                    >
                                                         <PullDown
                                                             :typeDivKv="typeDivKv"
                                                             name="ジャンル"
@@ -252,7 +293,14 @@ const pushImagePathList = ($event) => {
                                                     </v-col>
                                                 </v-row>
                                                 <v-row>
-                                                <v-col offset="3">
+                                                <v-col
+                                                    offset-md="3"
+                                                    offset-lg="3"
+                                                    cols="12"
+                                                    sm="12"
+                                                    md="6"
+                                                    lg="6"
+                                                >
                                                     <Button
                                                         name="投稿する"
                                                         color="blue"

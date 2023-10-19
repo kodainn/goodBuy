@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PostListController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +50,17 @@ Route::prefix('profile')->name('profile.')->controller(ProfileController::class)
     Route::get('/', 'index')->name('index');
     Route::post('/', 'store')->name('store');
     Route::get('/{user_uuid}', 'show')->name('show');
+});
+
+
+//パスワードリセット
+Route::prefix('password_reset')->name('password_reset.')->controller(PasswordResetController::class)->group(function() {
+    Route::get('/index', 'index')->name('index');
+    Route::post('/send', 'send')->name('send');
+    Route::get('/sendComp', 'sendComp')->name('sendComp');
+    Route::get('/edit', 'edit')->name('edit');
+    Route::post('/update', 'update')->name('update');
+    Route::get('/passwordComp', 'passwordComp')->name('passwordComp');
 });
 
 
