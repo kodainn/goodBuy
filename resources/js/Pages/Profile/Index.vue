@@ -23,6 +23,7 @@ const props = defineProps({
     follows: Object,
     allFollows: Object,
     followers: Object,
+    counts: Object,
     errors: Object
 });
 
@@ -30,27 +31,32 @@ const heart = mdiHeart;
 
 const dialog = ref(false);
 
-const setFrontUser = ref(props.user);
-const setFrontFollower = ref(props.followers);
+
+const frontUser = ref(props.user);
+const frontFollower = ref(props.followers);
 const frontPost = ref(props.posts);
+const frontCounts = ref(props.counts);
 
 const followFrontFlg = ref(false);
 const sendCreateFollow = async(user_uuid) => {
     await axios.post('/profile/follow/' + user_uuid)
     .then(res => {
         if(res.status === 200) {
+            frontFollower.value = res.data['follower'];
+            frontCounts.value['followerCount'] = res.data['followerCount'];
             followFrontFlg.value = true;
-            setFrontFollower.value = res.data;
         }
     });
 }
 
 const sendDeleteFollow = async(user_uuid) => {
+    if(!confirm('フォローを辞めますか?')) {return;}
     await axios.delete('/profile/follow/' + user_uuid)
     .then(res => {
         if(res.status === 200) {
             followFrontFlg.value = false;
-            setFrontFollower.value = res.data;
+            frontFollower.value = res.data['follower'];
+            frontCounts.value['followerCount'] = res.data['followerCount'];
             let index;
             if((index = props.allFollows.findIndex(item => item.user_uuid === props.loginUser['user_uuid'])) >= 0) {
                 props.allFollows[index]['user_uuid'] = '';
@@ -71,14 +77,14 @@ const postDelete = async(post_uuid) => {
 }
 
 const form = reactive({
-    nickName: setFrontUser.value['nick_name'],
-    pr: setFrontUser.value['pr'],
-    iconPath: setFrontUser.value['icon_path'],
+    nickName: frontUser.value['nick_name'],
+    pr: frontUser.value['pr'],
+    iconPath: frontUser.value['icon_path'],
     updateIconFlg: false
 });
 
 const sendForm = () => {
-    router.post(route('profile.store'), form, {
+    router.post(route('profile.update'), form, {
         onSuccess: () => {
             dialog.value = false;
         }
@@ -101,7 +107,7 @@ const setIconPath = ($event) => {
 <template>
     <v-app>
         <v-container>
-            <CommonHeader :loginUser="props.loginUser"></CommonHeader>
+            <CommonHeader :loginUser="loginUser"></CommonHeader>
             <v-main>
                 <v-container>
                     <v-row justify="space-around">
@@ -111,7 +117,7 @@ const setIconPath = ($event) => {
                                     <v-row>
                                         <v-col>
                                             <div class="text-center mb-2">
-                                                <Icon size="150" :path="props.user['icon_path']"></Icon>
+                                                <Icon size="150" :path="user['icon_path']"></Icon>
                                             </div>
                                         </v-col>
                                     </v-row>
@@ -123,7 +129,7 @@ const setIconPath = ($event) => {
                                             lg="4"
                                         >
                                             <div class="text-h5">
-                                                {{ props.user["nick_name"] }}
+                                                {{ user["nick_name"] }}
                                             </div>
                                         </v-col>
                                         <v-col
@@ -133,7 +139,7 @@ const setIconPath = ($event) => {
                                             sm="1"
                                             md="1"
                                             lg="1"
-                                            v-if="props.selfProfile"
+                                            v-if="selfProfile"
                                         >
                                             <v-dialog
                                                 v-model="dialog"
@@ -206,7 +212,7 @@ const setIconPath = ($event) => {
                                                                             autocomplete
                                                                         >
                                                                         </TextField>
-                                                                        <ErrorMessage :errorMessage="props.errors.nickName"></ErrorMessage>
+                                                                        <ErrorMessage :errorMessage="errors.nickName"></ErrorMessage>
                                                                     </v-col>
                                                                 </v-row>
                                                                 <v-row>
@@ -224,7 +230,7 @@ const setIconPath = ($event) => {
                                                                             autocomplete
                                                                         >
                                                                         </TextArea>
-                                                                        <ErrorMessage :errorMessage="props.errors.pr"></ErrorMessage>
+                                                                        <ErrorMessage :errorMessage="errors.pr"></ErrorMessage>
                                                                     </v-col>
                                                                 </v-row>
                                                                 <v-row>
@@ -251,7 +257,7 @@ const setIconPath = ($event) => {
                                             </v-dialog>
                                         </v-col>
                                         <v-col
-                                            v-else-if="!props.selfProfile && props.loginUser"
+                                            v-else-if="!selfProfile && loginUser"
                                             offset-sm="5"
                                             offset-md="6"
                                             offset-lg="6"
@@ -260,27 +266,27 @@ const setIconPath = ($event) => {
                                             lg="2"
                                         >
                                             <Button
-                                                v-if="(props.allFollows && props.allFollows.some(item => item.user_uuid === props.loginUser['user_uuid'])) || followFrontFlg"
+                                                v-if="(allFollows && allFollows.some(item => item.user_uuid === loginUser['user_uuid'])) || followFrontFlg"
                                                 rounded
                                                 large
                                                 name="フォロー中"
                                                 background-color="orchid"
                                                 color="white"
-                                                @click="sendDeleteFollow(setFrontUser['user_uuid'])"
+                                                @click="sendDeleteFollow(frontUser['user_uuid'])"
                                             ></Button>
                                             <Button
                                                 v-else
                                                 rounded
                                                 name="フォロー"
                                                 color="purple"
-                                                @click="sendCreateFollow(setFrontUser['user_uuid'])"
+                                                @click="sendCreateFollow(frontUser['user_uuid'])"
                                             ></Button>
                                         </v-col>
                                     </v-row>
                                     <v-row>
                                         <v-col offset="0">
                                             <div>
-                                                {{ props.user["pr"] }}
+                                                {{ user["pr"] }}
                                             </div>
                                         </v-col>
                                     </v-row>
@@ -291,9 +297,9 @@ const setIconPath = ($event) => {
                                                 color="deep-purple-accent-4"
                                                 align-tabs="center"
                                             >
-                                            <v-tab value="postList">投稿一覧</v-tab>
-                                            <v-tab value="followList">フォロワー</v-tab>
-                                            <v-tab value="followerList">フォロー中</v-tab>
+                                            <v-tab value="postList">投稿一覧({{ frontCounts['postCount'] }})</v-tab>
+                                            <v-tab value="followList">フォロワー({{ frontCounts['followerCount'] }})</v-tab>
+                                            <v-tab value="followerList">フォロー中({{ frontCounts['followCount'] }})</v-tab>
                                             </v-tabs>
                                             <v-window v-model="tab">
                                                 <!-- 投稿一覧 -->
@@ -327,7 +333,7 @@ const setIconPath = ($event) => {
                                                                     ></v-img>
                                                                     <v-card-text>
                                                                         <div class="text-h5 text-primary">
-                                                                            {{ props.typeGenreDivKv[post['genre_div']] }}
+                                                                            {{ typeGenreDivKv[post['genre_div']] }}
                                                                         </div>
                                                                         <div class="text-h6">
                                                                             {{ post['title'].length >= 15 ? post['title'].substr(0, 15) + '...' : post['title'] }}
@@ -358,7 +364,7 @@ const setIconPath = ($event) => {
                                                                                 </Button>
                                                                             </v-col>
                                                                             <v-col offset="1">
-                                                                                <template v-if="props.loginUser">
+                                                                                <template v-if="loginUser">
                                                                                     <svg-icon
                                                                                         type="mdi"
                                                                                         :path="heart"
@@ -383,7 +389,7 @@ const setIconPath = ($event) => {
                                                     <v-container fluid>
                                                         <v-row>
                                                             <v-col
-                                                                v-for="follower of setFrontFollower"
+                                                                v-for="follower of frontFollower"
                                                                 cols="12"
                                                             >
                                                                 <Link class="custom-link" :href="route('profile.show', {user_uuid: follower.users[0]['user_uuid']})">
@@ -404,7 +410,7 @@ const setIconPath = ($event) => {
                                                     <v-container fluid>
                                                         <v-row>
                                                             <v-col
-                                                                v-for="follow of props.follows"
+                                                                v-for="follow of follows"
                                                                 cols="12"
                                                             >
                                                                 <Link class="custom-link" :href="route('profile.show', {user_uuid: follow.users[0]['user_uuid']})">

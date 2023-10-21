@@ -4,131 +4,145 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileRequest;
-use App\Models\TblFollow;
-use App\Models\TblFollower;
-use App\Models\TblPost;
-use App\Models\TblTypeDiv;
-use App\Models\TblUser;
+use App\Repositories\Follow\TblFollowRepository;
+use App\Repositories\Follower\TblFollowerRepository;
+use App\Repositories\Post\TblPostRepository;
+use App\Repositories\TypeDiv\TblTypeDivRepository;
+use App\Repositories\User\TblUserRepository;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-use Ramsey\Uuid\Uuid;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
+    private $tblPostRepository;
+    private $tblUserRepository;
+    private $tblFollowRepository;
+    private $tblTypeDivRepository;
+    private $tblFollowerRepository;
+
+    public function __construct(
+        TblPostRepository $tblPostRepository,
+        TblUserRepository $tblUserRepository,
+        TblFollowRepository $tblFollowRepository,
+        TblTypeDivRepository $tblTypeDivRepository,
+        TblFollowerRepository $tblFollowerRepository
+    )
+    {
+        $this->tblPostRepository = $tblPostRepository;
+        $this->tblUserRepository = $tblUserRepository;
+        $this->tblFollowRepository = $tblFollowRepository;
+        $this->tblTypeDivRepository = $tblTypeDivRepository;
+        $this->tblFollowerRepository = $tblFollowerRepository;
+    }
+
     public function index()
     {
-        $loginUser = Auth::user();
-        $typeGenreDiv = TblTypeDiv::where('type_name', '=', 'genre')->get();
-        $typeGenreDivKv = [];
-        foreach($typeGenreDiv as $col) {
-            $typeGenreDivKv[$col['type_detail_div']] = $col['type_detail_name'];
-        }
-        $user = TblUser::with(['follows', 'followers'])->withCount(['follows', 'followers'])->where('user_uuid', '=', Auth::id())->first();
-        $posts = TblPost::with(['images' => function($query) {
-                    $query->orderBy('image_sort', 'asc');
-                }, 'goods'])
-                ->withCount('goods')
-                ->where('user_uuid', '=', Auth::id())
-                ->orderBy('created_at', 'desc')
-                ->get();
-        $postCount = TblPost::where('user_uuid', '=', Auth::id())->count();
-        $follows = TblFollow::with('users')->withCount('users')->where('user_uuid', '=', Auth::id())->get();
-        $followers = TblFollower::with('users')->withCount('users')->where('user_uuid', '=', Auth::id())->get();
-        //$posts['postCount'] = $postCount;
+
+        $typeGenreDivKv = $this->tblTypeDivRepository->getGenreKvAll();
+        $user = $this->tblUserRepository->getUserWithChildFirst(Auth::id());
+        $posts = $this->tblPostRepository->getPostWithChildOfUser(Auth::id());
+        $follows = $this->tblFollowRepository->getFollowWithUser(Auth::id());
+        $followers = $this->tblFollowerRepository->getFollowerWithUser(Auth::id());
+
+        $counts = [
+            'postCount' => $this->tblPostRepository->getPostCountOfUser(Auth::id()),
+            'followCount' => $this->tblFollowRepository->getFollowCountOfUser(Auth::id()),
+            'followerCount' => $this->tblFollowerRepository->getFollowerCountOfUser(Auth::id()) 
+        ];
+
         return Inertia::render('Profile/Index', [
             'selfProfile' => true,
-            'loginUser' => $loginUser,
+            'loginUser' => Auth::user(),
             'user' => $user,
             'posts' => $posts,
             'typeGenreDivKv' => $typeGenreDivKv,
             'follows' => $follows,
-            'followers' => $followers
+            'followers' => $followers,
+            'counts' => $counts
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(ProfileRequest $request)
+
+    public function update(ProfileRequest $request)
     {
-        if($request->updateIconFlg) {
-            $newFilePath = $request->iconPath->store('public/icon');
-            $newFilePath = '/storage/icon/' . explode('/', $newFilePath)[2];
-            DB::table('tbl_user')->where('user_uuid', '=', Auth::id())->update([
-                'nick_name' => $request->nickName,
-                'pr' => $request->pr,
-                'icon_path' => $newFilePath
-            ]);
-            return;
-        }
-        DB::table('tbl_user')->where('user_uuid', '=', Auth::id())->update([
-            'nick_name' => $request->nickName,
-            'pr' => $request->pr,
-        ]);
+        $request['userUuid'] = Auth::id();
+        $this->tblUserRepository->updateUser($request);
+        $request->session()->regenerateToken();
     }
+
 
     public function followStore($user_uuid)
     {
-        DB::table('tbl_follow')->insert([
-            'follow_uuid' => Uuid::uuid4(),
-            'user_uuid' => Auth::id(),
-            'follow_user_uuid' => $user_uuid
-        ]);
-        DB::table('tbl_follower')->insert([
-            'follower_uuid' => Uuid::uuid4(),
-            'user_uuid' => $user_uuid,
-            'follower_user_uuid' => Auth::id()
-        ]);
+        $follow = $this->tblFollowRepository->getFollowFirst(Auth::id(), $user_uuid);
+        if(!empty($follow)) {return $this->tblFollowerRepository->getFollowerWithUser($user_uuid);}
+        try {
+            $this->tblFollowRepository->insertFollow(Auth::id(), $user_uuid);
+            $this->tblFollowerRepository->insertFollower($user_uuid, Auth::id());
 
-        $followers = TblFollower::with('users')->withCount('users')->where('user_uuid', '=', $user_uuid)->get();
-
-        return response()->json($followers);
+            DB::commit();
+        } catch(Exception $e) {
+            DB::rollBack();
+        } finally {
+            return response()->json([
+                'follower' => $this->tblFollowerRepository->getFollowerWithUser($user_uuid),
+                'followerCount' => $this->tblFollowerRepository->getFollowerCountOfUser($user_uuid)
+            ]);
+        }
     }
+
 
     public function followDelete($user_uuid)
     {
-        DB::table('tbl_follow')->where('user_uuid', '=', Auth::id())->where('follow_user_uuid', '=', $user_uuid)->delete();
-        DB::table('tbl_follower')->where('user_uuid', '=', $user_uuid)->where('follower_user_uuid', '=', Auth::id())->delete();
+        $follow = $this->tblFollowRepository->getFollowFirst(Auth::id(), $user_uuid);
+        if(empty($follow)) {return $this->tblFollowerRepository->getFollowerWithUser($user_uuid);}
 
-        $followers = TblFollower::with('users')->withCount('users')->where('user_uuid', '=', $user_uuid)->get();
+        try {
+            $this->tblFollowRepository->deleteFollow(Auth::id(), $user_uuid);
+            $this->tblFollowerRepository->deleteFollower($user_uuid, Auth::id());
 
-        return response()->json($followers);
+            DB::commit();
+        } catch(Exception $e) {
+            DB::rollBack();
+        } finally {
+            return response()->json([
+                'follower' => $this->tblFollowerRepository->getFollowerWithUser($user_uuid),
+                'followerCount' => $this->tblFollowerRepository->getFollowerCountOfUser($user_uuid)
+            ]);
+        }
     }
+
 
     public function show($user_uuid)
     {
         if($user_uuid === Auth::id()) {
             return redirect()->route('profile.index');
         }
-        $loginUser = Auth::user();
-        $typeGenreDiv = TblTypeDiv::where('type_name', '=', 'genre')->get();
-        $typeGenreDivKv = [];
-        foreach($typeGenreDiv as $col) {
-            $typeGenreDivKv[$col['type_detail_div']] = $col['type_detail_name'];
-        }
-        $user = TblUser::with(['follows', 'followers'])->withCount(['follows', 'followers'])->where('user_uuid', '=', $user_uuid)->first();
-        $posts = TblPost::with('images')->where('user_uuid', '=', $user_uuid)->get();
-        $postCount = TblPost::where('user_uuid', '=', $user_uuid)->count();
-        $follows = TblFollow::with('users')->withCount('users')->where('user_uuid', '=', $user_uuid)->get();
-        $allFollows = TblFollow::all();
-        $followers = TblFollower::with('users')->withCount('users')->where('user_uuid', '=', $user_uuid)->get();
+
+        $typeGenreDivKv = $this->tblTypeDivRepository->getGenreKvAll();
+        $user = $this->tblUserRepository->getUserWithChildFirst($user_uuid);
+        $posts = $this->tblPostRepository->getPostWithChildOfUser($user_uuid);
+        $follows = $this->tblFollowRepository->getFollowWithUser($user_uuid);
+        $allFollows = $this->tblFollowRepository->getFollowAll();
+        $followers = $this->tblFollowerRepository->getFollowerWithUser($user_uuid);
+
+        $counts = [
+            'postCount' => $this->tblPostRepository->getPostCountOfUser($user_uuid),
+            'followCount' => $this->tblFollowRepository->getFollowCountOfUser($user_uuid),
+            'followerCount' => $this->tblFollowerRepository->getFollowerCountOfUser($user_uuid) 
+        ];
+
         return Inertia::render('Profile/Index', [
-            'loginUser'=> $loginUser,
+            'loginUser'=> Auth::user(),
             'user' => $user,
             'posts' => $posts,
             'typeGenreDivKv' => $typeGenreDivKv,
             'follows' => $follows,
             'allFollows' => $allFollows,
-            'followers' => $followers
+            'followers' => $followers,
+            'counts' => $counts
         ]);
     }
 }

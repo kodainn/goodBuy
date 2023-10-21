@@ -13,7 +13,6 @@ class ContactController extends Controller
 {
     public function index()
     {
-        $loginUser = Auth::user();
         $contact = session()->get('contact');
         if(empty($contact)) {
             $contact = [
@@ -23,33 +22,30 @@ class ContactController extends Controller
             ];
         }
         return Inertia::render('Contact/Index', [
-            'loginUser' => $loginUser,
+            'loginUser' => Auth::user(),
             'contact' => $contact
         ]);
     }
 
     public function conf(ContactRequest $request)
     {
-        $loginUser = Auth::user();
         session()->put('contact', $request->all());
         return Inertia::render('Contact/Conf', [
-            'loginUser' => $loginUser,
+            'loginUser' => Auth::user(),
             'inputs' => $request->all()
         ]);
     }
 
     public function comp(ContactRequest $request)
     {
-        $inputs = $request->except('action');
-        //入力されたメールアドレスにメールを送信
-        Mail::to($inputs['email'])->send(new ContactSendmail($inputs, 'user'));
-        Mail::to('goodsshare030513@gmail.com')->send(new ContactSendmail($inputs, 'admin'));
+        Mail::to($request['email'])->send(new ContactSendmail($request, 'user'));
+        Mail::to('goodsshare030513@gmail.com')->send(new ContactSendmail($request, 'admin'));
 
-        //再送信を防ぐためにトークンを再発行
         $request->session()->regenerateToken();
 
-        //送信完了ページのviewを表示
         session()->forget('contact');
-        return Inertia::render('Contact/Comp');
+        return Inertia::render('Contact/Comp', [
+            'loginUser' => Auth::user()
+        ]);
     }
 }

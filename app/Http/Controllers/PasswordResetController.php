@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ResetInputMailRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Mail\ResetPasswordMail;
-use App\Repositories\Interfaces\TblUserRepositoryInterface;
+use App\Repositories\User\TblUserRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -17,7 +17,7 @@ class PasswordResetController extends Controller
     private $tblUserRepository;
     private const MAIL_SENDED_SESSION_KEY = 'user_reset_password_mail_sended_action';
 
-    public function __construct(TblUserRepositoryInterface $tblUserRepository)
+    public function __construct(TblUserRepository $tblUserRepository)
     {
         $this->tblUserRepository = $tblUserRepository;
     }
@@ -41,6 +41,7 @@ class PasswordResetController extends Controller
         }
         // 不正アクセス防止セッションキー
         session()->put(self::MAIL_SENDED_SESSION_KEY, 'user_reset_password_send_email');
+        $request->session()->regenerateToken();
 
         return redirect()->route('password_reset.sendComp');
     }

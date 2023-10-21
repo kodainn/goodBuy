@@ -48,7 +48,7 @@ Route::prefix('profile')->name('profile.')->controller(ProfileController::class)
     Route::post('/follow/{user_uuid}', 'followStore');
     Route::delete('/follow/{user_uuid}', 'followDelete');
     Route::get('/', 'index')->name('index');
-    Route::post('/', 'store')->name('store');
+    Route::post('/', 'update')->name('update');
     Route::get('/{user_uuid}', 'show')->name('show');
 });
 

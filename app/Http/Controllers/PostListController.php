@@ -4,162 +4,120 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PostRequest;
-use App\Models\TblPost;
-use App\Models\TblPostMessage;
-use App\Models\TblTypeDiv;
-use Ramsey\Uuid\Uuid;
+use App\Repositories\Post\TblPostGoodRepository;
+use App\Repositories\Post\TblPostMessageRepository;
+use App\Repositories\Post\TblPostRepository;
+use App\Repositories\TypeDiv\TblTypeDivRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-use Throwable;
 
 class PostListController extends Controller
 {
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    private $tblPostRepository;
+    private $tblPostGoodRepository;
+    private $tblTypeDivRepository;
+    private $tblPostMessageRepository;
+
+    public function __construct(
+        TblTypeDivRepository $tblTypeDivRepository,
+        TblPostGoodRepository $tblPostGoodRepository,
+        TblPostRepository $tblPostRepository,
+        TblPostMessageRepository $tblPostMessageRepository
+    )
+    {
+        $this->tblPostGoodRepository = $tblPostGoodRepository;
+        $this->tblTypeDivRepository = $tblTypeDivRepository;
+        $this->tblPostRepository = $tblPostRepository;
+        $this->tblPostMessageRepository = $tblPostMessageRepository;
+    }
+
+
     public function index()
     {
-        $loginUser = Auth::user();
-        $typeDiv = TblTypeDiv::where('type_name', '=', 'genre')->get();
-        $typeDivKv = [];
-        foreach($typeDiv as $col) {
-            $typeDivKv[$col['type_detail_div']] = $col['type_detail_name'];
-        }
-        $posts = TblPost::with(['images' => function ($query) {
-            $query->orderBy('image_sort', 'asc');
-        }, 'goods'])->withCount('goods')->orderBy('created_at', 'desc')->get();
+        $typeDivKv = $this->tblTypeDivRepository->getGenreKvAll();
+        $posts = $this->tblPostRepository->getPostWithChild();
+
         return Inertia::render('PostList/Index', [
-            'loginUser' => $loginUser,
+            'loginUser' => Auth::user(),
             'typeDivKv' => $typeDivKv,
             'posts' => $posts
         ]);
     }
 
+
     public function searchGenre($genre)
     {
-        $posts = TblPost::where('genre_div', '=', $genre)->with(['images' => function ($query) {
-            $query->orderBy('image_sort', 'asc');
-        }, 'goods'])->withCount('goods')->orderBy('created_at', 'desc')->get();
+        $posts = $this->tblPostRepository->getSearchPostWithChild($genre);
 
         return response()->json($posts);
     }
+
 
     public function getPost()
     {
-        $posts = TblPost::with(['images' => function ($query) {
-            $query->orderBy('image_sort', 'asc');
-        }, 'goods'])->withCount('goods')->orderBy('created_at', 'desc')->get();
+        $posts = $this->tblPostRepository->getPostWithChild();
 
         return response()->json($posts);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+
     public function store(PostRequest $request)
     {
-        try {
-            DB::beginTransaction();
-
-            $post_uuid = Uuid::uuid4();
-            DB::table('tbl_post')->insert([
-                'post_uuid' => $post_uuid,
-                'user_uuid' => Auth::id(),
-                'title' => $request->title,
-                'review' => $request->review,
-                'genre_div' => $request->genreDiv
-            ]);
-            if(!empty($request->imageList)) {
-                $insertList = [];
-                $image_sort = 1;
-                foreach($request->imageList as $image) {
-                    $newFilePath = $image[0]->store('public/img');
-                    $newFileName = explode('/', $newFilePath)[2];
-                    $insertList[] = [
-                        'post_image_uuid' => Uuid::uuid4(),
-                        'post_uuid' => $post_uuid,
-                        'post_image_path' => '/storage/img/' . $newFileName,
-                        'image_sort' => $image_sort,
-                    ];
-                    $image_sort++;
-                }
-                DB::table('tbl_post_image')->insert($insertList);
-            }
-
-            DB::commit();
-        } catch(Throwable $e) {
-            DB::rollBack();
-            echo 'エラーメッセージ' . $e->getMessage();
-            var_dump($e->getMessage());exit;
-        }
+        $request['user_uuid'] = Auth::id();
+        $this->tblPostRepository->insertPostWithImages($request);
     }
+
 
     public function goodStore($post_uuid)
     {
-        DB::table('tbl_post_good')->insert([
-            'post_good_uuid' => Uuid::uuid4(),
-            'post_uuid' => $post_uuid,
-            'user_uuid' => Auth::id()
-        ]);
+        $postGood = $this->tblPostGoodRepository->getSearchPostGoodFirst($post_uuid, Auth::id());
+        if(empty($postGood)) {
+            $this->tblPostGoodRepository->insertPostGood($post_uuid, Auth::id());
+        }
     }
+
 
     public function goodDelete($post_uuid)
     {
-        DB::table('tbl_post_good')->where('post_uuid', '=', $post_uuid)->where('user_uuid', '=', Auth::id())->delete();
+        $postGood = $this->tblPostGoodRepository->getSearchPostGoodFirst($post_uuid, Auth::id());
+        if(!empty($postGood)) {
+            $this->tblPostGoodRepository->deletePostGood($post_uuid, Auth::id());
+        }
     }
+
 
     public function messageStore(Request $request, $post_uuid)
     {
 
-        DB::table('tbl_post_message')->insert([
-            [
-                'post_message_uuid' => Uuid::uuid4(),
-                'post_uuid' => $post_uuid,
-                'user_uuid' => Auth::id(),
-                'message' => $request['inputMessage']
-            ]
-        ]);
-
-        $message = TblPostMessage::where('post_uuid', '=', $post_uuid)->with('user')->orderBy('created_at', 'desc')->get();
+        $this->tblPostMessageRepository->insertPostMessage($post_uuid, Auth::id(), $request['inputMessage']);
+        $request->session()->regenerateToken();
+        $message = $this->tblPostMessageRepository->getPostMessageWithUser($post_uuid);
 
         return response()->json($message);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+
     public function show($post_uuid)
     {
-        $loginUser = Auth::user();
-        $post = TblPost::where('post_uuid', '=', $post_uuid)->with(['images', 'user', 'goods'])->withCount('goods')->first();
-        $message = TblPostMessage::where('post_uuid', '=', $post_uuid)->with('user')->orderBy('created_at', 'desc')->get();
-        $post['messages_count'] = TblPostMessage::where('post_uuid', '=', $post_uuid)->count();
+        $post = $this->tblPostRepository->getPostWithChildFirst($post_uuid);
+        $message = $this->tblPostMessageRepository->getPostMessageWithUser($post_uuid);
+        $post['messages_count'] = $this->tblPostMessageRepository->getPostMessageCount($post_uuid);
 
         return Inertia::render('PostList/Show', [
             'post' => $post,
-            'loginUser' => $loginUser,
+            'loginUser' => Auth::user(),
             'message' => $message,
             'backUrl' => url()->previous()
         ]);
     }
 
+
     public function delete($post_uuid)
     {
-        DB::table('tbl_post')->where('post_uuid', '=', $post_uuid)->where('user_uuid', '=', Auth::id())->delete();
-        $posts = TblPost::with(['images' => function ($query) {
-            $query->orderBy('image_sort', 'asc');
-        }, 'goods'])->withCount('goods')->orderBy('created_at', 'desc')->get();
+        $this->tblPostRepository->deletePost($post_uuid, Auth::id());
+        $posts = $this->tblPostRepository->getPostWithChild();
 
         return response()->json($posts);
     }

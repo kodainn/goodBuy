@@ -34,14 +34,13 @@ const getSearchGenreList = async() => {
 watch(searchGenre, getSearchGenreList);
 
 const postDelete = async(post_uuid) => {
-    if(confirm('本当に削除しますか?')) {
-        await axios.delete('/postlist/' + post_uuid)
-        .then(res => {
-            if(res.status === 200) {
-                frontPost.value = res.data;
-            }
-        });
-    }
+    if(!confirm('本当に削除しますか?')) {return;}
+    await axios.delete('/postlist/' + post_uuid)
+    .then(res => {
+        if(res.status === 200) {
+            frontPost.value = res.data;
+        }
+    });
 }
 
 const dialog = ref(false);

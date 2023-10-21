@@ -23,8 +23,8 @@ const heart = mdiHeart;
 const heartOutline = mdiHeartOutline;
 const messageOutline = mdiMessageOutline;
 
-const setFrontPost = ref(props.post);
-const setFrontMessage = ref(props.message);
+const frontPost = ref(props.post);
+const frontPostMessage = ref(props.message);
 
 const dialog = ref(false);
 
@@ -34,7 +34,7 @@ const sendCreateGood = async(post_uuid) => {
     .then(res => {
         if(res.status === 200) {
             goodFrontFlg.value = true;
-            setFrontPost.value['goods_count']++;
+            frontPost.value['goods_count']++;
         }
     });
 }
@@ -44,10 +44,10 @@ const sendDeleteGood = async(post_uuid) => {
     .then(res => {
         if(res.status === 200) {
             goodFrontFlg.value = false;
-            setFrontPost.value['goods_count']--;
+            frontPost.value['goods_count']--;
             let index;
-            if((index = setFrontPost.value['goods'].findIndex(item => item.user_uuid === props.loginUser['user_uuid'])) >= 0) {
-                setFrontPost.value['goods'][index]['user_uuid'] = '';
+            if((index = frontPost.value['goods'].findIndex(item => item.user_uuid === props.loginUser['user_uuid'])) >= 0) {
+                frontPost.value['goods'][index]['user_uuid'] = '';
             }
         }
     });
@@ -58,8 +58,8 @@ const sendCreateMessage = async(post_uuid) => {
     await axios.post('/postlist/message/' + post_uuid, { inputMessage: inputMessage.value })
     .then(res => {
         if(res.status === 200) {
-            setFrontMessage.value = res.data;
-            setFrontPost.value['messages_count'] += 1;
+            frontPostMessage.value = res.data;
+            frontPost.value['messages_count'] += 1;
             inputMessage.value = '';
         }
     });
@@ -71,12 +71,12 @@ const PagePrev = (p) => {
     if (currentImagePage.value > 1) {
         currentImagePage.value--;
     } else {
-        currentImagePage.value = setFrontPost.value["images"].length;
+        currentImagePage.value = frontPost.value["images"].length;
     }
 };
 const pageNext = (p) => {
     p.onClick();
-    if (currentImagePage.value < setFrontPost.value["images"].length) {
+    if (currentImagePage.value < frontPost.value["images"].length) {
         currentImagePage.value++;
     } else {
         currentImagePage.value = 1;
@@ -91,7 +91,7 @@ const pageNext = (p) => {
             <v-main>
                 <v-row>
                     <v-col offset="1" cols="10">
-                        {{ currentImagePage + "/" + setFrontPost["images"].length }}
+                        {{ currentImagePage + "/" + frontPost["images"].length }}
                         <v-carousel height="350" show-arrows hide-delimiters>
                             <template v-slot:prev="{ props }">
                                 <v-btn
@@ -109,7 +109,7 @@ const pageNext = (p) => {
                                     >次</v-btn
                                 >
                             </template>
-                            <template v-for="image of setFrontPost['images']">
+                            <template v-for="image of frontPost['images']">
                                 <v-carousel-item
                                     :src="image['post_image_path']"
                                     cover
@@ -139,20 +139,20 @@ const pageNext = (p) => {
                         lg="1"
                     >
                         <template v-if="loginUser">
-                            <template v-if="(setFrontPost['goods'] && setFrontPost['goods'].some(item => item.user_uuid === loginUser['user_uuid'])) || goodFrontFlg">
+                            <template v-if="(frontPost['goods'] && frontPost['goods'].some(item => item.user_uuid === loginUser['user_uuid'])) || goodFrontFlg">
                                 <svg-icon
                                     type="mdi"
                                     :path="heart"
                                     style="color: red"
-                                    @click="sendDeleteGood(setFrontPost['post_uuid'])"
+                                    @click="sendDeleteGood(frontPost['post_uuid'])"
                                 ></svg-icon
-                                >{{ setFrontPost['goods_count'] }}
+                                >{{ frontPost['goods_count'] }}
                             </template>
                             <template v-else>
                                 <svg-icon
                                     type="mdi"
                                     :path="heartOutline"
-                                    @click="sendCreateGood(setFrontPost['post_uuid'])"
+                                    @click="sendCreateGood(frontPost['post_uuid'])"
                                 ></svg-icon
                                 >{{ post['goods_count'] }}
                             </template>
@@ -176,7 +176,7 @@ const pageNext = (p) => {
                                     type="mdi"
                                     :path="messageOutline"
                                 ></svg-icon>
-                                {{ setFrontPost['messages_count'] }}
+                                {{ frontPost['messages_count'] }}
                             </template>
                             <v-card>
                                 <v-toolbar
@@ -193,7 +193,7 @@ const pageNext = (p) => {
                                 </v-toolbar>
                                 <v-card-text>
                                     <v-container>
-                                        <v-row v-for="message of setFrontMessage">
+                                        <v-row v-for="message of frontPostMessage">
                                             <v-col
                                                 offset-md="2"
                                                 offset-lg="2"
@@ -227,7 +227,7 @@ const pageNext = (p) => {
                                             <Button
                                                 :disabled="inputMessage ? false : true"
                                                 name="送信"
-                                                @click="sendCreateMessage(setFrontPost['post_uuid'])"
+                                                @click="sendCreateMessage(frontPost['post_uuid'])"
                                                 :style="{ height: '67%' }"
                                             >
                                             </Button>
@@ -242,7 +242,7 @@ const pageNext = (p) => {
                 <v-row>
                     <v-col>
                         <div class="text-h5">
-                            {{ setFrontPost['title'] }}
+                            {{ frontPost['title'] }}
                         </div>
                     </v-col>
                 </v-row>
@@ -257,7 +257,7 @@ const pageNext = (p) => {
                 <v-row>
                     <v-col>
                         <div class="text-h5">
-                            {{ setFrontPost['review'] }}
+                            {{ frontPost['review'] }}
                         </div>
                     </v-col>
                 </v-row>
@@ -271,11 +271,11 @@ const pageNext = (p) => {
                 <hr>
                 <v-row>
                     <v-col>
-                        <Link :href="route('profile.show', {user_uuid: setFrontPost['user_uuid']})" class="custom-link">
+                        <Link :href="route('profile.show', {user_uuid: frontPost['user_uuid']})" class="custom-link">
                             <div class="flex">
-                                <Icon :path="setFrontPost['user']['icon_path']"></Icon>
+                                <Icon :path="frontPost['user']['icon_path']"></Icon>
                                 <div class="text-h5">
-                                    {{ setFrontPost['user']['nick_name'] }}
+                                    {{ frontPost['user']['nick_name'] }}
                                 </div>
                             </div>
                         </Link>
