@@ -5,12 +5,17 @@ const props = defineProps({
     typeDivKv: Object,
     name: String,
     width: String,
-    height: String
+    height: String,
+    exceptAll: {
+        type: Boolean,
+        default: false
+    }
 });
 
 const typeDivItems = ref([]);
 
 for(const [typeDetailDiv, typeDetailName] of Object.entries(props.typeDivKv)) {
+    if(typeDetailDiv == 0 && props.exceptAll) {continue;}
     typeDivItems.value.push({
         'typeName': typeDetailName,
         'typeValue': typeDetailDiv

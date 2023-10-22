@@ -3,7 +3,6 @@ import { Link } from "@inertiajs/vue3";
 import Button from "./Button.vue";
 import NavLink from "@/Components/NavLink.vue";
 import { ref } from "vue";
-import { watch } from "vue";
 
 const props = defineProps({
     loginUser: Object,
@@ -23,7 +22,7 @@ const innerWidth = ref(window.innerWidth);
         <v-btn v-if="innerWidth < 960" @click="toggleMenu">メニュー</v-btn>
         <v-container v-if="innerWidth >= 960" class="mx-auto d-flex align-center justify-center">
             <NavLink
-                :href="route('postlist.index')"
+                :href="route('postlist.index', {'page': 1})"
                 :active="route().current('postlist.index')"
             >
                 投稿一覧
@@ -81,7 +80,7 @@ const innerWidth = ref(window.innerWidth);
                 <v-list-item>
                     <v-list-item-title>
                         <NavLink
-                            :href="route('postlist.index')"
+                            :href="route('postlist.index', {'page': 1})"
                         >
                             投稿一覧
                         </NavLink>

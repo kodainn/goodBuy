@@ -34,30 +34,81 @@ class PostListController extends Controller
     }
 
 
-    public function index()
+    public function index($page = 1)
     {
         $typeDivKv = $this->tblTypeDivRepository->getGenreKvAll();
-        $posts = $this->tblPostRepository->getPostWithChild();
+        $posts = $this->tblPostRepository->getPostWithChildPaginate($page);
+        $postCount = $this->tblPostRepository->getPostCount();
+        $maxPage = intval($postCount / 50);
+        if($postCount % 50 > 0) {
+            $maxPage += 1;
+        }
 
         return Inertia::render('PostList/Index', [
             'loginUser' => Auth::user(),
-            'typeDivKv' => $typeDivKv,
-            'posts' => $posts
+            'typeDivKv' => $typeDivKv,  
+            'posts' => $posts,
+            'currentPage' => (int) $page,
+            'maxPage' => $maxPage
+        ]);
+    }
+
+
+    public function getSearchPostPaginate($page, $genre)
+    {
+        $typeDivKv = $this->tblTypeDivRepository->getGenreKvAll();
+        $searchPosts = $this->tblPostRepository->getSearchPostWithChildPaginate($genre, $page);
+        $searchPostCount = $this->tblPostRepository->getSearchPostCount($genre);
+        $maxPage = intval($searchPostCount / 50);
+        if($searchPostCount % 50 > 0) {
+            $maxPage += 1;
+        }
+
+        return Inertia::render('PostList/Index', [
+            'loginUser' => Auth::user(),
+            'typeDivKv' => $typeDivKv,  
+            'posts' => $searchPosts,
+            'currentPage' => (int) $page,
+            'maxPage' => $maxPage,
+            'genre' => (int) $genre,
         ]);
     }
 
 
     public function searchGenre($genre)
     {
-        $posts = $this->tblPostRepository->getSearchPostWithChild($genre);
+        if((int) $genre === 0) {
+            $posts = $this->tblPostRepository->getPostWithChildPaginate();
+            $postCount = $this->tblPostRepository->getPostCount();
+            $maxPage = intval($postCount / 50);
+            if($postCount % 50 > 0) {
+                $maxPage += 1;
+            }
 
-        return response()->json($posts);
+            return response()->json([
+                'searchPosts' => $posts,
+                'maxPage' => $maxPage
+            ]);
+        }
+
+        $searchPosts = $this->tblPostRepository->getSearchPostWithChildPaginate($genre);
+        $searchPostCount = $this->tblPostRepository->getSearchPostCount($genre);
+        $maxPage = intval($searchPostCount / 50);
+        if($searchPostCount % 50 > 0) {
+            $maxPage += 1;
+        }
+
+        return response()->json([
+            'searchPosts' => $searchPosts,
+            'maxPage' => $maxPage,
+            'genre' => (int) $genre
+        ]);
     }
 
 
     public function getPost()
     {
-        $posts = $this->tblPostRepository->getPostWithChild();
+        $posts = $this->tblPostRepository->getPostWithChildPaginate();
 
         return response()->json($posts);
     }
@@ -117,7 +168,7 @@ class PostListController extends Controller
     public function delete($post_uuid)
     {
         $this->tblPostRepository->deletePost($post_uuid, Auth::id());
-        $posts = $this->tblPostRepository->getPostWithChild();
+        $posts = $this->tblPostRepository->getPostWithChildPaginate();
 
         return response()->json($posts);
     }

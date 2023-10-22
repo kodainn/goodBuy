@@ -23,8 +23,9 @@ class TblPostRepository
         $this->tblPostImage = $tblPostImage;
     }
 
-    public function getPostWithChild()
+    public function getPostWithChildPaginate($page = 1)
     {
+
         return $this->tblPost
                 ->with(
                     ['images' => function ($query) {
@@ -34,8 +35,32 @@ class TblPostRepository
                 )
                 ->withCount('goods')
                 ->orderBy('created_at', 'desc')
+                ->offset(($page - 1) * 50)
+                ->limit(50)
                 ->get();
     }
+
+
+    public function getSearchPostWithChildPaginate($genre, $page = 1)
+    {
+        $search = [
+            ['genre_div', '=', $genre]
+        ];
+
+        return $this->tblPost->where($search)
+                ->with(
+                    ['images' => function ($query) {
+                        $query->orderBy('image_sort', 'asc');
+                    },
+                    'goods']
+                )
+                ->withCount('goods')
+                ->orderBy('created_at', 'desc')
+                ->offset(($page - 1) * 50)
+                ->limit(50)
+                ->get();
+    }
+
 
     public function getPostWithChildOfUser($user_uuid)
     {
@@ -52,6 +77,7 @@ class TblPostRepository
                 ->get();
     }
 
+
     public function getPostWithChildFirst($post_uuid)
     {
         $search = [
@@ -64,19 +90,25 @@ class TblPostRepository
                 ->first();
     }
 
-    public function getSearchPostWithChild($genre)
+
+    public function getPostCount()
     {
-        return $this->tblPost->where('genre_div', '=', $genre)
-                ->with(
-                    ['images' => function ($query) {
-                        $query->orderBy('image_sort', 'asc');
-                    },
-                    'goods']
-                )
-                ->withCount('goods')
-                ->orderBy('created_at', 'desc')
-                ->get();
+        return $this->tblPost
+                ->count();
     }
+
+
+    public function getSearchPostCount($genre)
+    {
+        $search = [
+            ['genre_div', '=', $genre]
+        ];
+
+        return $this->tblPost
+                ->where($search)
+                ->count();
+    }
+
 
     public function getPostCountOfUser($user_uuid)
     {
@@ -89,11 +121,12 @@ class TblPostRepository
                 ->count();
     }
 
+
     public function insertPostWithImages($request)
     {
         try {
             DB::beginTransaction();
-
+            
             $post_uuid = Uuid::uuid4();
             $this->tblPost->insert([
                 'post_uuid' => $post_uuid,
@@ -125,6 +158,7 @@ class TblPostRepository
             echo 'エラーメッセージ' . $e->getMessage();
         }
     }
+
 
     public function deletePost($post_uuid, $user_uuid)
     {

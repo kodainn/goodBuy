@@ -21,6 +21,7 @@ class TblTypeDivRepository
         foreach($typeDiv as $col) {
             $typeDivKv[$col['type_detail_div']] = $col['type_detail_name'];
         }
+        $typeDivKv[0] = '全て';
         return $typeDivKv;
     }
 }

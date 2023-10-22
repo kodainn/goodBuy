@@ -29,9 +29,11 @@ Route::prefix('postlist')->name('postlist.')->controller(PostListController::cla
         Route::delete('/{post_uuid}', 'delete');
     });
 
-    Route::get('/search/{genre}', 'searchGenre');
-    Route::get('/', 'index')->name('index');
+    Route::get('/search/{genre}', 'searchGenre')->name('search');
     Route::get('/{post_uuid}', 'show')->name('show');
+    Route::get('/', 'index')->name('index');
+    Route::get('/{page}', 'index')->name('paginate');
+    Route::get('{page}/search/{genre}', 'getSearchPostPaginate')->name('search.paginate');
 });
 
 

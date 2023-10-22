@@ -11,24 +11,37 @@ import axios from "axios";
 import TextField from "@/Components/TextField.vue";
 import ErrorMessage from "@/Components/ErrorMessage.vue";
 import TextArea from "@/Components/TextArea.vue";
+import Pagination from "@/Components/Pagination.vue";
 
 const props = defineProps({
     loginUser: Object,
     typeDivKv: Object,
     posts: Object,
-    errors: Object
+    errors: Object,
+    currentPage: Number,
+    maxPage: Number,
+    genre: {
+        type: Number,
+        default: 0
+    }
 });
 
 const frontPost = ref(props.posts);
+const frontGenre = ref(props.genre);
+const frontCurrentPage = ref(props.currentPage);
+const frontmaxPage = ref(props.maxPage);
 
 const heart = mdiHeart;
 const plus = mdiPlus;
 
-const searchGenre = ref("");
+const searchGenre = ref('');
 const getSearchGenreList = async() => {
     await axios.get('/postlist/search/' + searchGenre.value)
     .then(res => {
-        frontPost.value = res.data;
+        frontPost.value = res.data['searchPosts'];
+        frontCurrentPage.value = 1;
+        frontmaxPage.value = res.data['maxPage'];
+        frontGenre.value = res.data['genre'];
     });
 };
 watch(searchGenre, getSearchGenreList);
@@ -174,6 +187,21 @@ const pushImagePathList = ($event) => {
                             </v-card>
                         </v-col>
                     </v-row>
+                    <v-row>
+                        <v-col
+                            cols="12"
+                            sm="12"
+                            md="12"
+                            lg="9"
+                        >
+                            <Pagination
+                                :currentPage="frontCurrentPage"
+                                :maxPage="frontmaxPage"
+                                :genre="frontGenre"
+                            >
+                            </Pagination>
+                        </v-col>
+                    </v-row>
                     <!-- 投稿作成エリア -->
                     <template v-if="loginUser">
                         <v-row justify="center">
@@ -201,14 +229,28 @@ const pushImagePathList = ($event) => {
                                             <v-container>
                                                 <v-row>
                                                     <template v-for="index in imageReviewList.length">
-                                                        <v-col v-if="(index - 1) === 0 || (index - 1) % 4 === 0" offset="2" cols="2">
+                                                        <v-col
+                                                            v-if="(index - 1) === 0 || (index - 1) % 4 === 0"
+                                                            offset-md="2"
+                                                            offset-lg="2"
+                                                            cols="4"
+                                                            sm="2"
+                                                            md="2"
+                                                            lg="2"
+                                                        >
                                                             <v-img
                                                                 height="150"
                                                                 width="150"
                                                                 :src="imageReviewList[index - 1][0]"
                                                             ></v-img>
                                                         </v-col>
-                                                        <v-col v-else cols="2">
+                                                        <v-col
+                                                            v-else
+                                                            cols="4"
+                                                            sm="2"
+                                                            md="2"
+                                                            lg="2"
+                                                        >
                                                             <v-img
                                                                 height="150"
                                                                 width="150"
@@ -286,6 +328,7 @@ const pushImagePathList = ($event) => {
                                                             :typeDivKv="typeDivKv"
                                                             name="ジャンル"
                                                             v-model="form.genreDiv"
+                                                            :exceptAll="true"
                                                         >
                                                         </PullDown>
                                                         <ErrorMessage :errorMessage="errors.genreDiv"></ErrorMessage>

@@ -114,6 +114,18 @@ const setIconPath = ($event) => {
                         <v-card width="800">
                             <v-card-text>
                                 <v-container>
+                                    <v-row v-if="!selfProfile && loginUser">
+                                        <v-col>
+                                            <div class="text-left mb-2">
+                                                <Link
+                                                    :href="route('profile.index')"
+                                                    style="text-decoration: none;"    
+                                                >
+                                                    {{ "<戻る" }}
+                                                </Link>
+                                            </div>
+                                        </v-col>
+                                    </v-row>
                                     <v-row>
                                         <v-col>
                                             <div class="text-center mb-2">
