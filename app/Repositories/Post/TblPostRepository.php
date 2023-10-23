@@ -62,7 +62,7 @@ class TblPostRepository
     }
 
 
-    public function getPostWithChildOfUser($user_uuid)
+    public function getPostWithChildOfUserClip($user_uuid, $offset = 1)
     {
         return $this->tblPost
                 ->with(
@@ -74,6 +74,8 @@ class TblPostRepository
                 ->withCount('goods')
                 ->where('user_uuid', '=', $user_uuid)
                 ->orderBy('created_at', 'desc')
+                ->offset($offset - 1)
+                ->limit(50)
                 ->get();
     }
 

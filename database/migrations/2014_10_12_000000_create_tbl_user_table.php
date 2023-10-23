@@ -20,10 +20,7 @@ return new class extends Migration
             $table->string('password', 255);
             $table->string('nick_name', 30)->nullable();
             $table->string('pr', 200)->nullable();
-            $table->integer('gender_div')->nullable();
             $table->text('icon_path')->nullable();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->rememberToken();
             $table->string('reset_password_access_key', 64)->nullable()->unique();
             $table->timestamp('reset_password_expire_at')->nullable();
             $table->timestamps();

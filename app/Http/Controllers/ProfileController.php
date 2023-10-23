@@ -43,7 +43,7 @@ class ProfileController extends Controller
 
         $typeGenreDivKv = $this->tblTypeDivRepository->getGenreKvAll();
         $user = $this->tblUserRepository->getUserWithChildFirst(Auth::id());
-        $posts = $this->tblPostRepository->getPostWithChildOfUser(Auth::id());
+        $posts = $this->tblPostRepository->getPostWithChildOfUserClip(Auth::id());
         $follows = $this->tblFollowRepository->getFollowWithUser(Auth::id());
         $followers = $this->tblFollowerRepository->getFollowerWithUser(Auth::id());
 
@@ -61,8 +61,16 @@ class ProfileController extends Controller
             'typeGenreDivKv' => $typeGenreDivKv,
             'follows' => $follows,
             'followers' => $followers,
-            'counts' => $counts
+            'counts' => $counts,
         ]);
+    }
+
+    
+    public function getMorePost($user_uuid, $moreCount)
+    {
+        $posts = $this->tblPostRepository->getPostWithChildOfUserClip($user_uuid, $moreCount);
+
+        return response()->json($posts);
     }
 
 
@@ -123,7 +131,7 @@ class ProfileController extends Controller
 
         $typeGenreDivKv = $this->tblTypeDivRepository->getGenreKvAll();
         $user = $this->tblUserRepository->getUserWithChildFirst($user_uuid);
-        $posts = $this->tblPostRepository->getPostWithChildOfUser($user_uuid);
+        $posts = $this->tblPostRepository->getPostWithChildOfUserClip($user_uuid);
         $follows = $this->tblFollowRepository->getFollowWithUser($user_uuid);
         $allFollows = $this->tblFollowRepository->getFollowAll();
         $followers = $this->tblFollowerRepository->getFollowerWithUser($user_uuid);

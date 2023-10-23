@@ -30,12 +30,21 @@ const props = defineProps({
 const heart = mdiHeart;
 
 const dialog = ref(false);
-
-
 const frontUser = ref(props.user);
 const frontFollower = ref(props.followers);
 const frontPost = ref(props.posts);
 const frontCounts = ref(props.counts);
+const frontMoreCount = ref(2);
+
+const morePostRequest = async(user_uuid) => {
+    await axios.get('/profile/' + user_uuid + '/morePost/' + frontMoreCount.value)
+    .then(res => {
+        if(res.status === 200) {
+            frontPost.value.push(res.data);
+            frontMoreCount.value++;
+        }
+    });
+}
 
 const followFrontFlg = ref(false);
 const sendCreateFollow = async(user_uuid) => {
@@ -388,6 +397,16 @@ const setIconPath = ($event) => {
                                                                         </v-row>
                                                                     </v-card-actions>
                                                                 </v-card>
+                                                            </v-col>
+                                                        </v-row>
+                                                        <v-row>
+                                                            <v-col>
+                                                                <Button
+                                                                    variant="text"                                                         
+                                                                    name="もっと見る"
+                                                                    @click="morePostRequest(frontPost[0]['user_uuid'])"
+                                                                >
+                                                                </Button>
                                                             </v-col>
                                                         </v-row>
                                                     </v-container>

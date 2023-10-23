@@ -51,6 +51,7 @@ Route::prefix('profile')->name('profile.')->controller(ProfileController::class)
     Route::get('/', 'index')->name('index');
     Route::post('/', 'update')->name('update');
     Route::get('/{user_uuid}', 'show')->name('show');
+    Route::get('/{user_uuid}/morePost/{moreCount}', 'getMorePost');
 });
 
 
