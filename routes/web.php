@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('postlist')->name('postlist.')->controller(PostListController::class)->group(function() {
 
     Route::middleware('auth')->group(function() {
-        Route::get('/getpost', 'getPost');
+        Route::get('/getpost/{page}/search/{genre}', 'getPostSearchPaginate');
         Route::post('/', 'store')->name('store');
         Route::post('/good/{post_uuid}', 'goodStore');
         Route::post('/message/{post_uuid}', 'messageStore');
@@ -29,7 +29,6 @@ Route::prefix('postlist')->name('postlist.')->controller(PostListController::cla
         Route::delete('/{post_uuid}', 'delete');
     });
 
-    Route::get('/search/{genre}', 'searchGenre')->name('search');
     Route::get('/{post_uuid}', 'show')->name('show');
     Route::get('/', 'index')->name('index');
     Route::get('/{page}', 'index')->name('paginate');

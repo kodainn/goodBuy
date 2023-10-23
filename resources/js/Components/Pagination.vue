@@ -66,17 +66,15 @@ const innerWidth = ref(window.innerWidth);
                     lg="1"
                 >
                     <template v-if="currentPage < maxPage">
-                        <Link v-if="genre === 0" :href="route('postlist.index', {'page': currentPage + 1})">
+                        <Link v-if="genre === 0" :href="route('postlist.paginate', {'page': currentPage + 1})">
                             <Button
                                 name=">"
-                                :class="{'active-button': page === currentPage}"
                             >
                             </Button>
                         </Link>
                         <Link v-else :href="route('postlist.search.paginate', {'page': currentPage + 1, 'genre': genre})">
                             <Button
                                 name=">"
-                                :class="{'active-button': page === currentPage}"
                             >
                             </Button>
                         </Link>
@@ -87,7 +85,7 @@ const innerWidth = ref(window.innerWidth);
         <v-row v-else>
             <v-col>
                 <template v-if="currentPage > 1 && maxPage > 0">
-                    <Link v-if="genre === 0" :href="route('postlist.index', {'page': currentPage - 1})">
+                    <Link v-if="genre === 0" :href="route('postlist.paginate', {'page': currentPage - 1})">
                         <Button
                             name="<前のページへ"
                         >
@@ -101,7 +99,7 @@ const innerWidth = ref(window.innerWidth);
                     </Link>
                 </template>
                 <template v-if="currentPage < maxPage">
-                    <Link v-if="genre === 0" :href="route('postlist.index', {'page': currentPage + 1})">
+                    <Link v-if="genre === 0" :href="route('postlist.paginate', {'page': currentPage + 1})">
                         <Button
                             name="次のページ>"
                         >

@@ -3,7 +3,7 @@ import CommonHeader from "@/Components/CommonHeader.vue";
 import SvgIcon from "@jamescoyle/vue-icon";
 import { mdiHeart } from "@mdi/js";
 import { mdiPlus } from "@mdi/js";
-import { ref, watch, reactive } from "vue";
+import { ref, reactive } from "vue";
 import { Link, router } from "@inertiajs/vue3";
 import Button from "@/Components/Button.vue";
 import PullDown from "@/Components/PullDown.vue";
@@ -26,37 +26,31 @@ const props = defineProps({
     }
 });
 
+const dialog = ref(false);
 const frontPost = ref(props.posts);
 const frontGenre = ref(props.genre);
 const frontCurrentPage = ref(props.currentPage);
 const frontmaxPage = ref(props.maxPage);
+const searchGenre = ref("");
+const innerWidth = ref(window.innerWidth);
 
 const heart = mdiHeart;
 const plus = mdiPlus;
 
-const searchGenre = ref('');
-const getSearchGenreList = async() => {
-    await axios.get('/postlist/search/' + searchGenre.value)
-    .then(res => {
-        frontPost.value = res.data['searchPosts'];
-        frontCurrentPage.value = 1;
-        frontmaxPage.value = res.data['maxPage'];
-        frontGenre.value = res.data['genre'];
-    });
-};
-watch(searchGenre, getSearchGenreList);
 
+//投稿削除
 const postDelete = async(post_uuid) => {
     if(!confirm('本当に削除しますか?')) {return;}
-    await axios.delete('/postlist/' + post_uuid)
+    await axios.delete('/postlist/' + post_uuid);
+    await axios.get('/postlist/getpost/' + frontCurrentPage.value + '/search/' + frontGenre.value)
     .then(res => {
-        if(res.status === 200) {
-            frontPost.value = res.data;
-        }
+        console.log(res.data);
+        frontPost.value = res.data['posts'];
+        frontCurrentPage.value = res.data['currentPage'];
+        frontmaxPage.value = res.data['maxPage'];
     });
 }
 
-const dialog = ref(false);
 
 const form = reactive({
     imageList: [],
@@ -65,6 +59,7 @@ const form = reactive({
     genreDiv: null
 });
 
+//投稿作成
 const sendForm = () => {
     router.post('/postlist', form, {
         onSuccess: async() => {
@@ -74,10 +69,12 @@ const sendForm = () => {
             form.review = null;
             form.genreDiv = null;
             dialog.value = false;
-            await axios.get('/postlist/getpost')
+            await axios.get('/postlist/getpost/' + frontCurrentPage.value + '/search/' + frontGenre.value)
             .then(res => {
-                frontPost.value = res.data;
-            })
+                 frontPost.value = res.data['posts'];
+                 frontCurrentPage.value = res.data['currentPage'];
+                 frontmaxPage.value = res.data['maxPage'];
+            });
         }
     });
 }
@@ -113,6 +110,31 @@ const pushImagePathList = ($event) => {
                                 v-model="searchGenre"
                             >
                             </PullDown>
+                        </v-col>
+                        <v-col
+                            cols="12"
+                            sm="6"
+                            md="4"
+                            lg="3"
+                        >
+                            <Link
+                                v-if="searchGenre ? true : false"
+                                :href="route('postlist.search.paginate', {page: 1, genre: searchGenre})">
+                                <Button
+                                    v-if="innerWidth >= 600"
+                                    name="検索"
+                                    color="black"
+                                    :style="{ height: '67%' }"
+                                >
+                                </Button>
+                                <Button
+                                    v-else
+                                    name="検索"
+                                    color="black"
+                                    width="100%"
+                                >
+                                </Button>
+                            </Link>
                         </v-col>
                     </v-row>
                     <!-- 一覧表示エリア -->
