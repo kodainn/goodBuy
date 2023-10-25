@@ -45,6 +45,18 @@ class TblFollowRepository
                 ->get();
     }
 
+    public function getFollowWithUserLimit($user_uuid)
+    {
+        $search = [
+            ['user_uuid', '=', $user_uuid]
+        ];
+
+        return $this->tblFollow
+                ->with('users')
+                ->where($search)
+                ->get();
+    }
+
     public function getFollowCountOfUser($user_uuid)
     {
         $search = [

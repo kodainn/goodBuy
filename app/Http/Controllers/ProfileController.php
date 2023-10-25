@@ -73,6 +73,17 @@ class ProfileController extends Controller
         return response()->json($posts);
     }
 
+    public function getLimitPost($user_uuid, $moreCount)
+    {
+        $posts = $this->tblPostRepository->getPostWithChildOfUserLimit($user_uuid, $moreCount);
+        $count = $this->tblPostRepository->getPostCountOfUser(Auth::id());
+
+        return response()->json([
+            'posts' => $posts,
+            'count' => $count
+        ]);
+    }
+
 
     public function update(ProfileRequest $request)
     {
@@ -89,7 +100,6 @@ class ProfileController extends Controller
         try {
             $this->tblFollowRepository->insertFollow(Auth::id(), $user_uuid);
             $this->tblFollowerRepository->insertFollower($user_uuid, Auth::id());
-
             DB::commit();
         } catch(Exception $e) {
             DB::rollBack();

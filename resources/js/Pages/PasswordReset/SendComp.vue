@@ -46,7 +46,12 @@ import { Link } from "@inertiajs/vue3";
                     align="center"
                     style="margin-bottom: 1%"
                 >
-                    <Link :href="route('postlist.index')">topへ戻る</Link>
+                    <Link
+                        :href="route('postlist.index')"
+                        style="text-decoration: none;"
+                    >
+                        topへ戻る
+                    </Link>
                 </v-col>
             </v-row>
         </v-container>

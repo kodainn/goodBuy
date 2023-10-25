@@ -23,7 +23,7 @@ class TblPostRepository
         $this->tblPostImage = $tblPostImage;
     }
 
-    public function getPostWithChildPaginate($page = 1)
+    public function getPostWithChildClip($page = 1)
     {
 
         return $this->tblPost
@@ -41,7 +41,7 @@ class TblPostRepository
     }
 
 
-    public function getSearchPostWithChildPaginate($genre, $page = 1)
+    public function getSearchPostWithChildClip($genre, $page = 1)
     {
         $search = [
             ['genre_div', '=', $genre]
@@ -74,8 +74,26 @@ class TblPostRepository
                 ->withCount('goods')
                 ->where('user_uuid', '=', $user_uuid)
                 ->orderBy('created_at', 'desc')
-                ->offset($offset - 1)
+                ->offset(($offset - 1) * 50)
                 ->limit(50)
+                ->get();
+    }
+
+
+    public function getPostWithChildOfUserLimit($user_uuid, $limit)
+    {
+        return $this->tblPost
+                ->with(
+                    ['images' => function($query) {
+                        $query->orderBy('image_sort', 'asc');
+                    },
+                    'goods']
+                )
+                ->withCount('goods')
+                ->where('user_uuid', '=', $user_uuid)
+                ->orderBy('created_at', 'desc')
+                ->offset(0)
+                ->limit($limit * 50)
                 ->get();
     }
 

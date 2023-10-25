@@ -46,7 +46,12 @@ import { Link } from "@inertiajs/vue3";
                     align="center"
                     style="margin-bottom: 1%"
                 >
-                    <Link :href="route('login')">ログイン画面へ戻る</Link>
+                    <Link
+                        :href="route('login')"
+                        style="text-decoration: none;"
+                    >
+                        ログイン画面へ戻る
+                    </Link>
                 </v-col>
             </v-row>
         </v-container>

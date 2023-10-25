@@ -103,7 +103,10 @@ const submit = () => {
                         md="6"
                         lg="6"
                     >
-                        <Link :href="route('password_reset.index')">
+                        <Link 
+                            :href="route('password_reset.index')"
+                            style="text-decoration: none;"
+                        >
                             パスワードを忘れた。
                         </Link>
                     </v-col>

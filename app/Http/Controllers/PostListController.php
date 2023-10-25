@@ -37,7 +37,7 @@ class PostListController extends Controller
     public function index($page = 1)
     {
         $typeDivKv = $this->tblTypeDivRepository->getGenreKvAll();
-        $posts = $this->tblPostRepository->getPostWithChildPaginate($page);
+        $posts = $this->tblPostRepository->getPostWithChildClip($page);
         $postCount = $this->tblPostRepository->getPostCount();
         $maxPage = intval($postCount / 50);
         if($postCount % 50 > 0) {
@@ -62,7 +62,7 @@ class PostListController extends Controller
     {
         $typeDivKv = $this->tblTypeDivRepository->getGenreKvAll();
         if((int) $genre === 0) {
-            $posts = $this->tblPostRepository->getPostWithChildPaginate($page);
+            $posts = $this->tblPostRepository->getPostWithChildClip($page);
             $postCount = $this->tblPostRepository->getPostCount();
             $maxPage = intval($postCount / 50);
             if($postCount % 50 > 0) {
@@ -83,7 +83,7 @@ class PostListController extends Controller
             ]);
         }
 
-        $searchPosts = $this->tblPostRepository->getSearchPostWithChildPaginate($genre, $page);
+        $searchPosts = $this->tblPostRepository->getSearchPostWithChildClip($genre, $page);
         $searchPostCount = $this->tblPostRepository->getSearchPostCount($genre);
         $maxPage = intval($searchPostCount / 50);
         if($searchPostCount % 50 > 0) {
@@ -108,7 +108,7 @@ class PostListController extends Controller
     public function getPostSearchPaginate($page, $genre)
     {
         if((int) $genre === 0) {
-            $posts = $this->tblPostRepository->getPostWithChildPaginate($page);
+            $posts = $this->tblPostRepository->getPostWithChildClip($page);
             $postCount = $this->tblPostRepository->getPostCount();
             $maxPage = intval($postCount / 50);
             if($postCount % 50 > 0) {
@@ -117,7 +117,7 @@ class PostListController extends Controller
 
             if($page > $maxPage) {
                 $page = $maxPage;
-                $posts = $this->tblPostRepository->getPostWithChildPaginate($page);
+                $posts = $this->tblPostRepository->getPostWithChildClip($page);
             }
 
             return response()->json([
@@ -127,7 +127,7 @@ class PostListController extends Controller
             ]);
         }
 
-        $searchPosts = $this->tblPostRepository->getSearchPostWithChildPaginate($genre, $page);
+        $searchPosts = $this->tblPostRepository->getSearchPostWithChildClip($genre, $page);
         $searchPostCount = $this->tblPostRepository->getSearchPostCount($genre);
         $maxPage = intval($searchPostCount / 50);
         if($searchPostCount % 50 > 0) {
@@ -200,6 +200,6 @@ class PostListController extends Controller
     public function delete($post_uuid)
     {
         $this->tblPostRepository->deletePost($post_uuid, Auth::id());
-        $posts = $this->tblPostRepository->getPostWithChildPaginate();
+        $posts = $this->tblPostRepository->getPostWithChildClip();
     }
 }

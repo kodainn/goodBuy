@@ -34,14 +34,17 @@ const frontUser = ref(props.user);
 const frontFollower = ref(props.followers);
 const frontPost = ref(props.posts);
 const frontCounts = ref(props.counts);
-const frontMoreCount = ref(2);
+const frontMoreCount = ref(1);
+
 
 const morePostRequest = async(user_uuid) => {
+    frontMoreCount.value++;
     await axios.get('/profile/' + user_uuid + '/morePost/' + frontMoreCount.value)
     .then(res => {
         if(res.status === 200) {
-            frontPost.value.push(res.data);
-            frontMoreCount.value++;
+            for(const post of res.data) {
+                frontPost.value.push(post);
+            }
         }
     });
 }
@@ -74,12 +77,14 @@ const sendDeleteFollow = async(user_uuid) => {
     });
 }
 
-const postDelete = async(post_uuid) => {
+const postDelete = async(post_uuid, user_uuid) => {
     if(confirm('本当に削除しますか?')) {
         await axios.delete('/postlist/' + post_uuid)
+        await axios.get('/profile/' + user_uuid + '/limitPost/' + frontMoreCount.value)
         .then(res => {
             if(res.status === 200) {
-                frontPost.value = res.data;
+                frontPost.value = res.data['posts'];
+                frontCounts.value['postCount'] = res.data['count'];
             }
         });
     }
@@ -380,7 +385,7 @@ const setIconPath = ($event) => {
                                                                                     variant="text"
                                                                                     name="削除"
                                                                                     color="red"
-                                                                                    @click="postDelete(post['post_uuid'])"
+                                                                                    @click="postDelete(post['post_uuid'], post['user_uuid'])"
                                                                                 >
                                                                                 </Button>
                                                                             </v-col>
@@ -402,6 +407,7 @@ const setIconPath = ($event) => {
                                                         <v-row>
                                                             <v-col>
                                                                 <Button
+                                                                    :style="{display: frontPost.length === frontCounts['postCount'] && frontCounts['postCount'] <= 50 ? 'none' : ''}"
                                                                     variant="text"                                                         
                                                                     name="もっと見る"
                                                                     @click="morePostRequest(frontPost[0]['user_uuid'])"

@@ -44,7 +44,6 @@ const postDelete = async(post_uuid) => {
     await axios.delete('/postlist/' + post_uuid);
     await axios.get('/postlist/getpost/' + frontCurrentPage.value + '/search/' + frontGenre.value)
     .then(res => {
-        console.log(res.data);
         frontPost.value = res.data['posts'];
         frontCurrentPage.value = res.data['currentPage'];
         frontmaxPage.value = res.data['maxPage'];
