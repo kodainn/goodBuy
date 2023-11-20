@@ -15,7 +15,8 @@ class TblFollowerRepository
         $this->tblFollower = $tblFollower;
     }
 
-    public function getFollowerWithUser($user_uuid)
+
+    public function getFollowerWithUserClip($user_uuid, $offset = 1)
     {
         $search = [
             ['user_uuid', '=', $user_uuid]
@@ -24,8 +25,26 @@ class TblFollowerRepository
         return $this->tblFollower
                 ->with('users')
                 ->where($search)
+                ->offset(($offset - 1) * 50)
+                ->limit(50)
                 ->get();
     }
+
+
+    public function getFollowerWithUserLimit($user_uuid, $limit = 1)
+    {
+        $search = [
+            ['user_uuid', '=', $user_uuid]
+        ];
+
+        return $this->tblFollower
+                ->with('users')
+                ->where($search)
+                ->offset(0)
+                ->limit($limit * 50)
+                ->get();
+    }
+
 
     public function getFollowerCountOfUser($user_uuid)
     {

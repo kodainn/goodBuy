@@ -52,6 +52,9 @@ Route::prefix('profile')->name('profile.')->controller(ProfileController::class)
     Route::get('/{user_uuid}', 'show')->name('show');
     Route::get('/{user_uuid}/morePost/{moreCount}', 'getMorePost');
     Route::get('/{user_uuid}/limitPost/{moreCount}', 'getLimitPost');
+    Route::get('/{user_uuid}/moreFollow/{moreCount}', 'getMoreFollow');
+    Route::get('/{user_uuid}/moreFollower/{moreCount}', 'getMoreFollower');
+    Route::get('/{user_uuid}/limitFollower/{moreCount}', 'getLimitFollower');
 });
 
 

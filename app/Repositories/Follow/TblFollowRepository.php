@@ -16,10 +16,12 @@ class TblFollowRepository
         $this->tblFollow = $tblFollow;
     }
 
+
     public function getFollowAll()
     {
         return $this->tblFollow->all();
     }
+
 
     public function getFollowFirst($user_uuid, $follow_user_uuid)
     {
@@ -33,7 +35,8 @@ class TblFollowRepository
                 ->first();
     }
 
-    public function getFollowWithUser($user_uuid)
+
+    public function getFollowWithUserClip($user_uuid, $offset = 1)
     {
         $search = [
             ['user_uuid', '=', $user_uuid]
@@ -42,10 +45,13 @@ class TblFollowRepository
         return $this->tblFollow
                 ->with('users')
                 ->where($search)
+                ->offset(($offset - 1) * 50)
+                ->limit(50)
                 ->get();
     }
 
-    public function getFollowWithUserLimit($user_uuid)
+
+    public function getFollowWithUserLimit($user_uuid, $limit = 1)
     {
         $search = [
             ['user_uuid', '=', $user_uuid]
@@ -54,8 +60,11 @@ class TblFollowRepository
         return $this->tblFollow
                 ->with('users')
                 ->where($search)
+                ->offset(0)
+                ->limit($limit * 50)
                 ->get();
     }
+
 
     public function getFollowCountOfUser($user_uuid)
     {
@@ -68,6 +77,7 @@ class TblFollowRepository
                 ->count();
     }
 
+
     public function insertFollow($user_uuid, $follow_user_uuid)
     {
         $this->tblFollow->insert([
@@ -76,6 +86,7 @@ class TblFollowRepository
             'follow_user_uuid' => $follow_user_uuid
         ]);
     }
+
 
     public function deleteFollow($user_uuid, $follow_user_uuid)
     {

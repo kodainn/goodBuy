@@ -31,15 +31,14 @@ const heart = mdiHeart;
 
 const dialog = ref(false);
 const frontUser = ref(props.user);
-const frontFollower = ref(props.followers);
-const frontPost = ref(props.posts);
 const frontCounts = ref(props.counts);
-const frontMoreCount = ref(1);
 
 
+const frontPost = ref(props.posts);
+const frontPostMoreCount = ref(1);
 const morePostRequest = async(user_uuid) => {
-    frontMoreCount.value++;
-    await axios.get('/profile/' + user_uuid + '/morePost/' + frontMoreCount.value)
+    frontPostMoreCount.value++;
+    await axios.get('/profile/' + user_uuid + '/morePost/' + frontPostMoreCount.value)
     .then(res => {
         if(res.status === 200) {
             for(const post of res.data) {
@@ -49,46 +48,109 @@ const morePostRequest = async(user_uuid) => {
     });
 }
 
+
+const postDelete = async(post_uuid, user_uuid) => {
+    let success_flg = ref(false);
+    if(confirm('本当に削除しますか?')) {
+        await axios.delete('/postlist/' + post_uuid)
+        .then(res => {
+            if(res.status === 200) {
+                success_flg.value = true;
+            }
+        });
+
+        if(!success_flg.value){return ;}
+
+        await axios.get('/profile/' + user_uuid + '/limitPost/' + frontPostMoreCount.value)
+        .then(res => {
+            if(res.status === 200) {
+                frontPost.value = res.data;
+                frontCounts.value['postCount']--;
+            }
+        })
+    }
+}
+
+
+const frontFollowMoreCount = ref(1);
+const frontFollowerMoreCount = ref(1);
 const followFrontFlg = ref(false);
+const frontFollower = ref(props.followers);
 const sendCreateFollow = async(user_uuid) => {
+    let create_success = ref(false);
     await axios.post('/profile/follow/' + user_uuid)
     .then(res => {
         if(res.status === 200) {
-            frontFollower.value = res.data['follower'];
-            frontCounts.value['followerCount'] = res.data['followerCount'];
-            followFrontFlg.value = true;
+            create_success.value = res.data['create_success'];
         }
     });
+
+    if(!create_success.value){return ;}
+
+    await axios.get('/profile/' + user_uuid + '/limitFollower/' + frontFollowerMoreCount.value)
+    .then(res => {
+        if(res.status === 200) {
+            frontFollower.value = res.data;
+            frontCounts.value['followerCount']++;
+            followFrontFlg.value = true;
+        }
+    })
 }
+
 
 const sendDeleteFollow = async(user_uuid) => {
     if(!confirm('フォローを辞めますか?')) {return;}
+    let delete_success = ref(false);
     await axios.delete('/profile/follow/' + user_uuid)
     .then(res => {
         if(res.status === 200) {
+            delete_success.value = res.data['delete_success'];
+        }
+    });
+
+    if(!delete_success.value) {return ;}
+
+    await axios.get('/profile/' + user_uuid + '/limitFollower/' + frontFollowerMoreCount.value)
+    .then(res => {
+        if(res.status === 200) {
             followFrontFlg.value = false;
-            frontFollower.value = res.data['follower'];
-            frontCounts.value['followerCount'] = res.data['followerCount'];
+            frontFollower.value = res.data;
+            frontCounts.value['followerCount']--;
             let index;
             if((index = props.allFollows.findIndex(item => item.user_uuid === props.loginUser['user_uuid'])) >= 0) {
                 props.allFollows[index]['user_uuid'] = '';
             }
         }
-    });
+    })
 }
 
-const postDelete = async(post_uuid, user_uuid) => {
-    if(confirm('本当に削除しますか?')) {
-        await axios.delete('/postlist/' + post_uuid)
-        await axios.get('/profile/' + user_uuid + '/limitPost/' + frontMoreCount.value)
-        .then(res => {
-            if(res.status === 200) {
-                frontPost.value = res.data['posts'];
-                frontCounts.value['postCount'] = res.data['count'];
+
+const moreFollowerRequest = async(user_uuid) => {
+    frontFollowerMoreCount.value++;
+    await axios.get('/profile/' + user_uuid + '/moreFollower/' + frontFollowerMoreCount.value)
+    .then(res => {
+        if(res.status === 200) {
+            for(const follower of res.data) {
+                frontFollower.value.push(follower);
             }
-        });
-    }
+        }
+    })
 }
+
+
+const frontFollow = ref(props.follows);
+const moreFollowRequest = async(user_uuid) => {
+    frontFollowMoreCount.value++;
+    await axios.get('/profile/' + user_uuid + '/moreFollow/' + frontFollowMoreCount.value)
+    .then(res => {
+        if(res.status === 200) {
+            for(const follow of res.data) {
+                frontFollow.value.push(follow);
+            }
+        }
+    })
+}
+
 
 const form = reactive({
     nickName: frontUser.value['nick_name'],
@@ -96,6 +158,7 @@ const form = reactive({
     iconPath: frontUser.value['icon_path'],
     updateIconFlg: false
 });
+
 
 const sendForm = () => {
     router.post(route('profile.update'), form, {
@@ -105,8 +168,8 @@ const sendForm = () => {
     });
 }
 
-const tab = ref(null);
 
+const tab = ref(null);
 const iconReviewPath = ref('');
 const setIconPath = ($event) => {
     if ($event.target.files.length > 0) {
@@ -436,6 +499,17 @@ const setIconPath = ($event) => {
                                                                 <hr>
                                                             </v-col>
                                                         </v-row>
+                                                        <v-row>
+                                                            <v-col>
+                                                                <Button
+                                                                    :style="{display: frontFollower.length === frontCounts['followerCount'] && frontCounts['followerCount'] <= 50 ? 'none' : ''}"
+                                                                    variant="text"                                                         
+                                                                    name="もっと見る"
+                                                                    @click="moreFollowerRequest(user['user_uuid'])"
+                                                                >
+                                                                </Button>
+                                                            </v-col>
+                                                        </v-row>
                                                     </v-container>
                                                 </v-window-item>
 
@@ -447,7 +521,7 @@ const setIconPath = ($event) => {
                                                     <v-container fluid>
                                                         <v-row>
                                                             <v-col
-                                                                v-for="follow of follows"
+                                                                v-for="follow of frontFollow"
                                                                 cols="12"
                                                             >
                                                                 <Link class="custom-link" :href="route('profile.show', {user_uuid: follow.users[0]['user_uuid']})">
@@ -455,6 +529,17 @@ const setIconPath = ($event) => {
                                                                     {{ follow.users[0]['nick_name'] }}
                                                                 </Link>
                                                                 <hr>
+                                                            </v-col>
+                                                        </v-row>
+                                                        <v-row>
+                                                            <v-col>
+                                                                <Button
+                                                                    :style="{display: frontFollow.length === frontCounts['followCount'] && frontCounts['followCount'] <= 50 ? 'none' : ''}"
+                                                                    variant="text"                                                         
+                                                                    name="もっと見る"
+                                                                    @click="moreFollowRequest(user['user_uuid'])"
+                                                                >
+                                                                </Button>
                                                             </v-col>
                                                         </v-row>
                                                     </v-container>

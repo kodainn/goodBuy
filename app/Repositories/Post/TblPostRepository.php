@@ -80,7 +80,7 @@ class TblPostRepository
     }
 
 
-    public function getPostWithChildOfUserLimit($user_uuid, $limit)
+    public function getPostWithChildOfUserLimit($user_uuid, $limit = 1)
     {
         return $this->tblPost
                 ->with(
