@@ -17,6 +17,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 //投稿
+Route::get('/', function() {
+    return 'Hello';
+});
+
 Route::prefix('postlist')->name('postlist.')->controller(PostListController::class)->group(function() {
 
     Route::middleware('auth')->group(function() {
